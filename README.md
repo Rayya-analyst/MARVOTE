@@ -105,8 +105,8 @@ As a project designed for a professional engineering portfolio, MARVOTE demonstr
 
 1. **Clone the repository:**
 ```bash
-git clone [https://github.com/Rayya-analyst/MARVOTE.git](https://github.com/Rayya-analyst/MARVOTE.git)
-   cd MARVOTE
+git clone https://github.com/Rayya-analyst/MARVOTE.git
+cd MARVOTE
 
 ```
 
