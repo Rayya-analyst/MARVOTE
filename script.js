@@ -71,16 +71,20 @@ async function initApp() {
       
       if (siswaError) throw siswaError;
 
-      SISWA = {};
+      SISWA = {}; 
       if (siswaData) {
         siswaData.forEach(item => {
           if (!SISWA[item.kelas]) {
             SISWA[item.kelas] = [];
           }
-          SISWA[item.kelas].push({
-            absen: item.absen,
-            nama: item.nama
-          });
+          
+          const isDuplicate = SISWA[item.kelas].some(s => s.absen === item.absen);
+          if (!isDuplicate) {
+            SISWA[item.kelas].push({
+              absen: item.absen,
+              nama: item.nama
+            });
+          }
         });
       }
 
