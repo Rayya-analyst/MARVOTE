@@ -26,6 +26,30 @@ let voterRole = 'siswa';
 let currentVoter = null; 
 let realtimeChannel = null;
 
+function sortKelasKeys(keys) {
+  const grades = { 'X': 10, 'XI': 11, 'XII': 12 };
+  const majors = {
+    'APHP': 1,
+    'DKV': 2,
+    'KULINER': 3,
+    'LPS': 4,
+    'RPL': 5
+  };
+  return keys.sort((a, b) => {
+    const partsA = a.split(' ');
+    const partsB = b.split(' ');
+    const gA = grades[partsA[0]] || 0;
+    const gB = grades[partsB[0]] || 0;
+    if (gA !== gB) return gA - gB;
+    const mA = majors[partsA[1]] || 99;
+    const mB = majors[partsB[1]] || 99;
+    if (mA !== mB) return mA - mB;
+    const nA = parseInt(partsA[2]) || 0;
+    const nB = parseInt(partsB[2]) || 0;
+    return nA - nB;
+  });
+}
+
 function getLocalVotes() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
@@ -109,7 +133,7 @@ async function initApp() {
   const selKelas = document.getElementById('sel-kelas');
   if (selKelas) {
     selKelas.innerHTML = '<option value="">— Pilih kelas kamu —</option>';
-    Object.keys(SISWA).sort().forEach(k => {
+    sortKelasKeys(Object.keys(SISWA)).forEach(k => {
       const o = document.createElement('option');
       o.value = k;
       o.textContent = k;
@@ -511,6 +535,9 @@ function adminLogout() {
 }
 
 async function renderAdmin() {
+  const filterGrade = document.getElementById('filter-grade')?.value || '';
+  const filterMajor = document.getElementById('filter-major')?.value || '';
+
   let votes = [];
 
   if (supabaseClient) {
@@ -584,7 +611,20 @@ async function renderAdmin() {
     }).join('');
   }
 
-  const allVotersTbody = votes.length ? votes.map((v, i) => {
+  const filteredVotes = votes.filter(v => {
+    if (v.voter_role === 'guru') {
+      return !filterGrade && !filterMajor;
+    }
+    const kelas = v.voter_identifier.split('|')[0].trim();
+    const parts = kelas.split(' ');
+    const grade = parts[0];
+    const major = parts.slice(1).join(' ');
+    const matchesGrade = !filterGrade || grade === filterGrade;
+    const matchesMajor = !filterMajor || major === filterMajor;
+    return matchesGrade && matchesMajor;
+  });
+
+  const allVotersTbody = filteredVotes.length ? filteredVotes.map((v, i) => {
     const formattedTime = new Date(v.timestamp).toLocaleString('id-ID');
     return `
       <tr>
@@ -596,7 +636,7 @@ async function renderAdmin() {
         <td style="font-size:11px; color:#666">${formattedTime}</td>
       </tr>
     `;
-  }).join('') : `<tr><td colspan="6" class="empty-state">Belum ada suara masuk.</td></tr>`;
+  }).join('') : `<tr><td colspan="6" class="empty-state">Tidak ada data pemilih yang cocok dengan filter.</td></tr>`;
 
   document.getElementById('voter-table').innerHTML = `
     <table class="vtable">
@@ -623,7 +663,16 @@ async function renderAdmin() {
     }
   });
 
-  document.getElementById('kelas-table').innerHTML = Object.keys(SISWA).sort().map(k => {
+  const sortedKelasKeys = sortKelasKeys(Object.keys(SISWA)).filter(k => {
+    const parts = k.split(' ');
+    const grade = parts[0];
+    const major = parts.slice(1).join(' ');
+    const matchesGrade = !filterGrade || grade === filterGrade;
+    const matchesMajor = !filterMajor || major === filterMajor;
+    return matchesGrade && matchesMajor;
+  });
+
+  const kelasTableContent = sortedKelasKeys.length ? sortedKelasKeys.map(k => {
     const sudah = kelasMap[k] || [];
     const total_k = SISWA[k].length;
     const rows = sudah.map((v, i) => `
@@ -653,7 +702,9 @@ async function renderAdmin() {
         </table>
       </div>
     `;
-  }).join('');
+  }).join('') : `<div class="empty-state">Tidak ada data kelas yang cocok dengan filter.</div>`;
+
+  document.getElementById('kelas-table').innerHTML = kelasTableContent;
 
   const teacherVotes = votes.filter(v => v.voter_role === 'guru');
   const guruRows = teacherVotes.length ? teacherVotes.map((v, i) => {
@@ -691,7 +742,17 @@ async function renderAdmin() {
   const votedIdentifierSet = new Set(votes.map(v => v.voter_identifier));
   const belumList = [];
 
-  Object.entries(SISWA).forEach(([kelas, list]) => {
+  const filteredBelumKelasKeys = sortKelasKeys(Object.keys(SISWA)).filter(k => {
+    const parts = k.split(' ');
+    const grade = parts[0];
+    const major = parts.slice(1).join(' ');
+    const matchesGrade = !filterGrade || grade === filterGrade;
+    const matchesMajor = !filterMajor || major === filterMajor;
+    return matchesGrade && matchesMajor;
+  });
+
+  filteredBelumKelasKeys.forEach(kelas => {
+    const list = SISWA[kelas];
     list.forEach(s => {
       const id = `${kelas} | Absen ${s.absen}`;
       if (!votedIdentifierSet.has(id)) {
@@ -700,12 +761,14 @@ async function renderAdmin() {
     });
   });
 
-  TEACHERS.forEach(t => {
-    const id = `Guru | Kode ${t.code}`;
-    if (!votedIdentifierSet.has(id)) {
-      belumList.push({ name: t.nama, role: 'guru', identifier: id });
-    }
-  });
+  if (!filterGrade && !filterMajor) {
+    TEACHERS.forEach(t => {
+      const id = `Guru | Kode ${t.code}`;
+      if (!votedIdentifierSet.has(id)) {
+        belumList.push({ name: t.nama, role: 'guru', identifier: id });
+      }
+    });
+  }
 
   const belumRows = belumList.length ? belumList.map((b, i) => `
     <tr>
