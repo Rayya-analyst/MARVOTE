@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Voting Ketua OSIS SMKN 2 Mojokerto</title>
+  <meta name="description" content="Platform Pemilihan Ketua OSIS SMKN 2 Mojokerto secara online, aman, mandiri, dan transparan.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="grid-bg">
+
+  <h1 class="sr-only">Pemilihan Ketua OSIS SMKN 2 Mojokerto</h1>
+
+  <div id="page-vote" class="page active">
+    <nav class="navbar" id="vote-navbar">
+      <div class="navbar-brand">
+        <div class="logo-circle">
+          <img src="/logo.jpg" alt="Logo OSIS" onerror="this.parentElement.innerHTML='<span style=\'color:white;font-weight:700;font-size:14px\'>OSIS</span>'">
+        </div>
+        <div>
+          <div class="brand-title">OSIS SMKN 2 Mojokerto</div>
+          <div class="brand-sub">Pemilihan Ketua OSIS</div>
+        </div>
+      </div>
+      <button class="btn-logout" id="btn-exit-vote" onclick="resetForm()"><i class="ti ti-logout" aria-hidden="true"></i> Keluar</button>
+    </nav>
+    <div class="marquee-bar"><div class="marquee-inner" id="mq"></div></div>
+
+    <div class="hero">
+      <div class="hero-eyebrow">Pemilihan Resmi · OSIS 2025</div>
+      <h2><span class="hp">Pilih</span><br>Ketua OSIS<br><span class="hm">Pilihanmu!</span></h2>
+      <p class="hero-sub">Suaramu menentukan masa depan OSIS SMKN 2 Mojokerto. Satu suara, satu pilihan, satu perubahan nyata.</p>
+      <button class="btn-hero" onclick="startVoting()">✦ Mulai Memilih</button>
+    </div>
+
+    <div class="vote-main-content">
+      <div id="form-anchor" class="form-section" style="margin-bottom: 40px;">
+        <div class="form-section-title">Identitas Pemilih</div>
+        <div class="form-section-sub">Tentukan peran Anda terlebih dahulu untuk validasi data</div>
+
+        <div class="fg">
+          <div class="step-row"><div class="step-num">1</div><div class="step-label">Pilih Peran Anda <span class="req">*</span></div></div>
+          <div class="role-selector">
+            <button type="button" class="btn-role active" id="role-siswa" onclick="setRole('siswa')">
+              <i class="ti ti-school"></i> Siswa
+            </button>
+            <button type="button" class="btn-role" id="role-guru" onclick="setRole('guru')">
+              <i class="ti ti-user-star"></i> Guru / Staff
+            </button>
+          </div>
+        </div>
+
+        <div id="voter-siswa-container">
+          <div class="fg">
+            <div class="step-row"><div class="step-num">2</div><div class="step-label">Pilih Kelas <span class="req">*</span></div></div>
+            <select id="sel-kelas" onchange="onKelasChange()">
+              <option value="">— Pilih kelas kamu —</option>
+            </select>
+          </div>
+
+          <div class="fg">
+            <div class="step-row"><div class="step-num">3</div><div class="step-label">Pilih No. Absen <span class="req">*</span></div></div>
+            <select id="sel-absen" onchange="onAbsenChange()" disabled>
+              <option value="">— Pilih kelas dulu —</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="voter-guru-container" style="display:none">
+          <div class="fg">
+            <div class="step-row"><div class="step-num">2</div><div class="step-label">Masukkan Kode Guru <span class="req">*</span></div></div>
+            <div class="teacher-input-wrap">
+              <input type="text" id="input-kode-guru" placeholder="Contoh: G101" oninput="onTeacherCodeChange()" style="text-transform: uppercase;">
+            </div>
+          </div>
+        </div>
+
+        <div class="name-reveal" id="name-reveal">
+          <div class="label">Identitas Terverifikasi</div>
+          <div class="name" id="name-display">—</div>
+          <div class="kelas-info" id="kelas-display"></div>
+          <div class="name-confirm"><i class="ti ti-circle-check" aria-hidden="true"></i> Data ditemukan — silakan lanjut memilih kandidat</div>
+        </div>
+      </div>
+
+      <div class="cand-section">
+        <div class="step-row" style="margin-bottom: 12px;">
+          <div class="step-num">4</div>
+          <div class="step-label">Pilih Kandidat Pilihanmu <span class="req">*</span></div>
+        </div>
+        <div class="cand-sub">Gunakan hak suara Anda. Pilih salah satu kandidat di bawah ini:</div>
+        <div class="cand-list" id="cand-list"></div>
+      </div>
+
+      <div class="err-box" id="vote-err"></div>
+      <div class="submit-wrap">
+        <button class="btn-submit" id="btn-submit-vote" onclick="submitVote()">✦ Kirim Suaraku</button>
+      </div>
+      <div class="admin-link">Panitia? <a onclick="showPage('admin-login')">Masuk ke Dashboard Admin</a></div>
+    </div>
+  </div>
+
+  <div id="page-success" class="page success-page">
+    <nav class="navbar" id="success-navbar">
+      <div class="navbar-brand">
+        <div class="logo-circle"><img src="/logo.jpg" alt="Logo OSIS" onerror="this.parentElement.innerHTML='<span style=\'color:white;font-weight:700;font-size:14px\'>OSIS</span>'"></div>
+        <div><div class="brand-title">OSIS SMKN 2 Mojokerto</div><div class="brand-sub">Pemilihan Ketua OSIS</div></div>
+      </div>
+    </nav>
+    <div class="success-hero">
+      <div class="success-check"><i class="ti ti-check" style="font-size:36px;color:#1C1C1C" aria-hidden="true"></i></div>
+      <h2 class="success-h">Suara Diterima!</h2>
+      <p class="success-p">Terima kasih atas partisipasi Anda dalam Pemilihan Ketua OSIS.<br><strong>Simpan atau screenshot struk di bawah ini sebagai bukti resmi.</strong></p>
+    </div>
+    <div class="receipt-wrap">
+      <div class="rlabel">Bukti Voting Resmi</div>
+      <div class="receipt-card" id="receipt-out"></div>
+    </div>
+    <button class="btn-back" onclick="showPage('vote');resetForm()">← Kembali ke Beranda</button>
+  </div>
+
+  <div id="page-admin-login" class="page admin-login-page">
+    <nav class="navbar" id="admin-login-navbar">
+      <div class="navbar-brand">
+        <div class="logo-circle"><img src="/logo.jpg" alt="Logo OSIS" onerror="this.parentElement.innerHTML='<span style=\'color:white;font-weight:700;font-size:14px\'>OSIS</span>'"></div>
+        <div><div class="brand-title">OSIS SMKN 2 Mojokerto</div><div class="brand-sub">Dashboard Admin</div></div>
+      </div>
+    </nav>
+    <div class="admin-login-inner">
+      <h2 class="admin-login-h">Dashboard Panitia</h2>
+      <div class="admin-login-sub">Masukkan password panitia untuk melihat data real-time</div>
+      <div class="admin-card">
+        <div class="fg" style="margin-bottom:18px">
+          <label style="display:block;font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Password Admin</label>
+          <input type="password" id="admin-pass" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')adminLogin()">
+        </div>
+        <div class="err-box" id="admin-err" style="margin:0 0 14px"></div>
+        <button class="btn-submit" onclick="adminLogin()"><i class="ti ti-shield-check" aria-hidden="true"></i> Masuk</button>
+      </div>
+      <div class="admin-link" style="margin-top:20px"><a onclick="showPage('vote')">← Kembali ke Voting</a></div>
+    </div>
+  </div>
+
+  <div id="page-admin" class="page admin-dash">
+    <div class="dash-header">
+      <h2><i class="ti ti-chart-bar" aria-hidden="true"></i> Dashboard Pemilihan</h2>
+      <button class="btn-logout" onclick="adminLogout()"><i class="ti ti-logout" aria-hidden="true"></i> Keluar</button>
+    </div>
+    <div class="dash-body">
+      <div class="kpi-grid" id="kpi-grid"></div>
+      
+      <div class="bar-wrap">
+        <div class="section-hd">Hasil Perolehan Suara</div>
+        <div id="bar-chart"></div>
+      </div>
+      
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this,'tc-all')">Semua Pemilih</button>
+        <button class="tab-btn" onclick="switchTab(this,'tc-kelas')">Per Kelas (Siswa)</button>
+        <button class="tab-btn" onclick="switchTab(this,'tc-guru')">Guru / Staff</button>
+        <button class="tab-btn" onclick="switchTab(this,'tc-belum')">Belum Memilih</button>
+      </div>
+      
+      <div id="tc-all" class="tab-content active"><div class="table-wrap" id="voter-table"></div></div>
+      <div id="tc-kelas" class="tab-content"><div id="kelas-table"></div></div>
+      <div id="tc-guru" class="tab-content"><div class="table-wrap" id="guru-table"></div></div>
+      <div id="tc-belum" class="tab-content"><div class="table-wrap" id="belum-table"></div></div>
+      
+      <div class="act-row">
+        <button class="btn-act" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Unduh Data (.CSV)</button>
+        <button class="btn-act danger" onclick="if(confirm('PERINGATAN: Reset semua data voting dari database? Tindakan ini permanen!')){clearData();renderAdmin();}"><i class="ti ti-trash" aria-hidden="true"></i> Reset Hasil Voting</button>
+      </div>
+
+      <div class="admin-setup-panel" style="margin-top: 32px; border-top: 3px solid var(--dark); padding-top: 24px;">
+        <div class="section-hd" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <span><i class="ti ti-settings" aria-hidden="true"></i> Pengaturan & Skema Database</span>
+          <button class="btn-act" id="btn-seed" onclick="seedSupabase()" style="background: var(--yellow);"><i class="ti ti-database-import" aria-hidden="true"></i> Seed Master Data ke Supabase</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
