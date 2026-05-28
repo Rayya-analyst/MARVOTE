@@ -7,7 +7,7 @@ Moving away from traditional paper ballots and rigid static web setups, MARVOTE 
 
 ---
 
-## 🛠️ Technical Architecture & Tech Stack
+## Technical Architecture & Tech Stack
 The platform is built using a modern, lightweight, and highly responsive technology stack designed for rapid deployment and seamless data synchronization:
 
 * **Front-End UI/UX:** Built with clean, semantic **HTML5**, **Modern JavaScript (ES6+)**, and customized utility frameworks styled with the premium **Plus Jakarta Sans** typeface to deliver a mobile-first, fluid, and foolproof user experience.
