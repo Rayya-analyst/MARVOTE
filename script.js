@@ -24,6 +24,7 @@ const STORAGE_KEY = "osis_smkn2mjk_votes_v4";
 let selectedCandidateId = null;
 let voterRole = 'siswa'; 
 let currentVoter = null; 
+let realtimeChannel = null;
 
 function getLocalVotes() {
   try {
@@ -492,11 +493,17 @@ function adminLogin() {
   }
   renderAdmin();
   showPage('admin');
+  aktifkanRealtimeAdmin();
 }
 
 function adminLogout() {
   document.getElementById('admin-pass').value = '';
   showPage('vote');
+  if (realtimeChannel) {
+    supabaseClient.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+    console.log("Radar Realtime MARVOTE Dimatikan.");
+  }
 }
 
 async function renderAdmin() {
@@ -835,4 +842,27 @@ async function exportCSV() {
   a.href = url;
   a.download = `hasil_voting_osis_smkn2mjk_${new Date().toLocaleDateString('id-ID')}.csv`;
   a.click();
+}
+
+function aktifkanRealtimeAdmin() {
+  if (!supabaseClient) return;
+  if (realtimeChannel) return;
+
+  console.log("Radar Realtime MARVOTE Aktif! Memantau suara masuk...");
+
+  realtimeChannel = supabaseClient
+    .channel('pantau-suara-osis')
+    .on(
+      'postgres_changes', 
+      { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'votes'   
+      }, 
+      (payload) => {
+        console.log('Ada suara baru terdeteksi!', payload.new);
+        renderAdmin(); 
+      }
+    )
+    .subscribe();
 }
