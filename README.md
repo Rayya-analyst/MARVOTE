@@ -105,8 +105,8 @@ As a project designed for a professional engineering portfolio, MARVOTE demonstr
 
 1. **Clone the repository:**
 ```bash
-git clone [https://github.com/yourusername/marvote.git](https://github.com/yourusername/marvote.git)
-cd marvote
+git clone [https://github.com/Rayya-analyst/MARVOTE.git](https://github.com/Rayya-analyst/MARVOTE.git)
+   cd MARVOTE
 
 ```
 
@@ -116,6 +116,3 @@ Open `index.html` directly or use the **Live Server** extension in VS Code.
 3. **Database Connectivity:**
 Ensure your local environment configuration points to the active `SUPABASE_URL` and valid `SUPABASE_ANON_KEY` variables inside `script.js`.
 
-```
-
-```
