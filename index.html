@@ -40,7 +40,7 @@
       <div class="hero-eyebrow">PILKETOS ONLINE SMK NEGERI 2 MOJOKERTO</div>
       <h2><span class="hp">Pilih</span><br>Ketua OSIS<br><span class="hm">Pilihanmu!</span></h2>
       <p class="hero-sub">Suaramu menentukan masa depan OSIS SMK Negeri 2 Mojokerto. Satu suara, satu pilihan, satu perubahan nyata.</p>
-      <button class="btn-hero" onclick="startVoting()">✦ Mulai Memilih</button>
+      <button class="btn-hero" onclick="startVoting()">Mulai Memilih</button>
     </div>
 
     <div class="vote-main-content">
@@ -81,9 +81,9 @@
 
         <div id="voter-guru-container" style="display:none">
           <div class="fg">
-            <div class="step-row"><div class="step-num">2</div><div class="step-label">Masukkan Kode Guru <span class="req">*</span></div></div>
+            <div class="step-row"><div class="step-num">2</div><div class="step-label">Masukkan Urutan Guru <span class="req">*</span></div></div>
             <div class="teacher-input-wrap">
-              <input type="text" id="input-kode-guru" placeholder="Contoh: G101" oninput="onTeacherCodeChange()" style="text-transform: uppercase;">
+              <input type="text" id="input-kode-guru" placeholder="Contoh: 01" oninput="onTeacherCodeChange()" style="text-transform: uppercase;">
             </div>
           </div>
         </div>
@@ -109,7 +109,7 @@
 
       <div class="err-box" id="vote-err"></div>
       <div class="submit-wrap">
-        <button class="btn-submit" id="btn-submit-vote" onclick="submitVote()">✦ Kirim Suaraku</button>
+        <button class="btn-submit" id="btn-submit-vote" onclick="submitVote()">Kirim Suaraku</button>
       </div>
       <div class="admin-link">Panitia? <a onclick="showPage('admin-login')">Masuk ke Dashboard Admin</a></div>
     </div>
@@ -135,7 +135,7 @@
       <div class="rlabel">Bukti Voting Resmi</div>
       <div class="receipt-card" id="receipt-out"></div>
     </div>
-    <button class="btn-back" onclick="showPage('vote');resetForm()">← Kembali ke Beranda</button>
+    <button class="btn-back" onclick="showPage('vote');resetForm()">Kembali ke Beranda</button>
   </div>
 
   <div id="page-admin-login" class="page admin-login-page">
@@ -160,7 +160,7 @@
         <div class="err-box" id="admin-err" style="margin:0 0 14px"></div>
         <button class="btn-submit" onclick="adminLogin()"><i class="ti ti-shield-check" aria-hidden="true"></i> Masuk</button>
       </div>
-      <div class="admin-link" style="margin-top:20px"><a onclick="showPage('vote')">← Kembali ke Voting</a></div>
+      <div class="admin-link" style="margin-top:20px"><a onclick="showPage('vote')">Kembali ke Voting</a></div>
     </div>
   </div>
 
