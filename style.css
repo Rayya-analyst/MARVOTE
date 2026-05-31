@@ -112,6 +112,12 @@ body {
   border-radius: 50%;
 }
 
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .brand-title {
   font-family: var(--serif);
   font-size: 17px;

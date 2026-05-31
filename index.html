@@ -16,11 +16,19 @@
   <div id="page-vote" class="page active">
     <nav class="navbar" id="vote-navbar">
       <div class="navbar-brand">
-        <div class="logo-circle">
-          <img src="/logo.jpg" alt="Logo OSIS" onerror="this.parentElement.innerHTML='<span style=\'color:white;font-weight:700;font-size:14px\'>OSIS</span>'">
+        <div class="logo-group">
+          <div class="logo-circle">
+            <img src="/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
+          </div>
+          <div class="logo-circle">
+            <img src="/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
+          </div>
+          <div class="logo-circle">
+            <img src="/logo.jpg" alt="Logo OSIS" onerror="this.style.display='none'">
+          </div>
         </div>
         <div>
-          <div class="brand-title">OSIS SMKN 2 Mojokerto</div>
+          <div class="brand-title">OSIS SMK NEGERI 2 MOJOKERTO</div>
           <div class="brand-sub">Pemilihan Ketua OSIS</div>
         </div>
       </div>
@@ -29,9 +37,9 @@
     <div class="marquee-bar"><div class="marquee-inner" id="mq"></div></div>
 
     <div class="hero">
-      <div class="hero-eyebrow">Pemilihan Resmi · OSIS 2025</div>
+      <div class="hero-eyebrow">PILKETOS ONLINE SMK NEGERI 2 MOJOKERTO</div>
       <h2><span class="hp">Pilih</span><br>Ketua OSIS<br><span class="hm">Pilihanmu!</span></h2>
-      <p class="hero-sub">Suaramu menentukan masa depan OSIS SMKN 2 Mojokerto. Satu suara, satu pilihan, satu perubahan nyata.</p>
+      <p class="hero-sub">Suaramu menentukan masa depan OSIS SMK Negeri 2 Mojokerto. Satu suara, satu pilihan, satu perubahan nyata.</p>
       <button class="btn-hero" onclick="startVoting()">✦ Mulai Memilih</button>
     </div>
 
@@ -105,7 +113,11 @@
   <div id="page-success" class="page success-page">
     <nav class="navbar" id="success-navbar">
       <div class="navbar-brand">
-        <div class="logo-circle"><img src="/logo.jpg" alt="Logo OSIS" onerror="this.parentElement.innerHTML='<span style=\'color:white;font-weight:700;font-size:14px\'>OSIS</span>'"></div>
+        <div class="logo-group">
+          <div class="logo-circle"><img src="/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'"></div>
+          <div class="logo-circle"><img src="/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'"></div>
+          <div class="logo-circle"><img src="/logo.jpg" alt="Logo OSIS" onerror="this.style.display='none'"></div>
+        </div>
         <div><div class="brand-title">OSIS SMKN 2 Mojokerto</div><div class="brand-sub">Pemilihan Ketua OSIS</div></div>
       </div>
     </nav>
@@ -124,7 +136,11 @@
   <div id="page-admin-login" class="page admin-login-page">
     <nav class="navbar" id="admin-login-navbar">
       <div class="navbar-brand">
-        <div class="logo-circle"><img src="/logo.jpg" alt="Logo OSIS" onerror="this.parentElement.innerHTML='<span style=\'color:white;font-weight:700;font-size:14px\'>OSIS</span>'"></div>
+        <div class="logo-group">
+          <div class="logo-circle"><img src="/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'"></div>
+          <div class="logo-circle"><img src="/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'"></div>
+          <div class="logo-circle"><img src="/logo.jpg" alt="Logo OSIS" onerror="this.style.display='none'"></div>
+        </div>
         <div><div class="brand-title">OSIS SMKN 2 Mojokerto</div><div class="brand-sub">Dashboard Admin</div></div>
       </div>
     </nav>
@@ -144,10 +160,17 @@
   </div>
 
   <div id="page-admin" class="page admin-dash">
-    <div class="dash-header">
-      <h2><i class="ti ti-chart-bar" aria-hidden="true"></i> Dashboard Pemilihan</h2>
+    <nav class="navbar" id="admin-navbar">
+      <div class="navbar-brand">
+        <div class="logo-group">
+          <div class="logo-circle"><img src="/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'"></div>
+          <div class="logo-circle"><img src="/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'"></div>
+          <div class="logo-circle"><img src="/logo.jpg" alt="Logo OSIS" onerror="this.style.display='none'"></div>
+        </div>
+        <div><div class="brand-title">OSIS SMKN 2 Mojokerto</div><div class="brand-sub">Dashboard Admin</div></div>
+      </div>
       <button class="btn-logout" onclick="adminLogout()"><i class="ti ti-logout" aria-hidden="true"></i> Keluar</button>
-    </div>
+    </nav>
     <div class="dash-body">
       <div class="kpi-grid" id="kpi-grid"></div>
       
