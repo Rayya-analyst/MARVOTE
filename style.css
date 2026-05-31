@@ -441,6 +441,7 @@ select, .teacher-input-wrap input {
   color: var(--dark);
   box-shadow: 4px 4px 0px var(--dark);
   transition: var(--transition);
+  text-transform: uppercase;
 }
 
 select {

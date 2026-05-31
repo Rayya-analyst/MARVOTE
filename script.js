@@ -32,7 +32,7 @@ function sortKelasKeys(keys) {
     'APHP': 1,
     'DKV': 2,
     'KULINER': 3,
-    'LPS': 4,
+    'PS': 4,
     'RPL': 5
   };
   return keys.sort((a, b) => {
@@ -123,7 +123,7 @@ async function initApp() {
         console.log("Data kandidat berhasil dimuat dari Supabase.");
       }
 
-      console.log("Data master siswa, guru, dan kandidat berhasil disinkronkan dari cloud.");
+      console.log("Data master siswa, guru, and kandidat berhasil disinkronkan dari cloud.");
 
     } catch (error) {
       console.error("Gagal memuat data dari Supabase, mengaktifkan mode aman lokal:", error);
@@ -211,10 +211,13 @@ function setRole(role) {
 }
 
 function resetSiswaForm() {
-  document.getElementById('sel-kelas').value = '';
-  const selAbsen = document.getElementById('sel-absen');
-  selAbsen.innerHTML = '<option value="">— Pilih kelas dulu —</option>';
-  selAbsen.disabled = true;
+  const inputSiswa = document.getElementById('input-kode-siswa');
+  if (inputSiswa) {
+    inputSiswa.value = '';
+  }
+  document.getElementById('name-reveal')?.classList.remove('show');
+  document.querySelector('.cand-section')?.classList.remove('show');
+  document.querySelector('.submit-wrap')?.classList.remove('show');
 }
 
 function resetGuruForm() {
@@ -257,15 +260,18 @@ async function onAbsenChange() {
     currentVoter = null;
     document.querySelector('.cand-section')?.classList.remove('show');
     document.querySelector('.submit-wrap')?.classList.remove('show');
+    document.getElementById('success-message').style.display = 'none';
     return;
   }
   
   const absen = parseInt(absenStr);
-  const nameDisplay = document.getElementById('name-display');
-  const kelasDisplay = document.getElementById('kelas-display');
+  const nameDisplay = document.getElementById('status-title');
+  const kelasDisplay = document.getElementById('status-desc');
+  const successMessage = document.getElementById('success-message');
   
   nameDisplay.textContent = "Mengambil data...";
   kelasDisplay.textContent = "";
+  successMessage.style.display = 'none';
   reveal.classList.add('show');
 
   let nama = null;
@@ -299,6 +305,7 @@ async function onAbsenChange() {
     };
     nameDisplay.textContent = nama;
     kelasDisplay.textContent = `Siswa · Kelas ${kelas} · Absen ${absen}`;
+    successMessage.style.display = 'block';
     
     document.querySelector('.cand-section')?.classList.add('show');
     document.querySelector('.submit-wrap')?.classList.add('show');
@@ -313,41 +320,68 @@ async function onAbsenChange() {
 }
 
 async function onTeacherCodeChange() {
-  const code = document.getElementById('input-kode-guru').value.trim().toUpperCase();
+  const code = document.getElementById('input-kode-guru').value.trim();
   const reveal = document.getElementById('name-reveal');
-  const nameDisplay = document.getElementById('name-display');
-  const kelasDisplay = document.getElementById('kelas-display');
+  const nameDisplay = document.getElementById('status-title');
+  const kelasDisplay = document.getElementById('status-desc');
+  const successMessage = document.getElementById('success-message');
 
-  if (code.length < 3) {
+  const teacherTokenPattern = /^\d{2}$/;
+  if (!teacherTokenPattern.test(code)) {
     reveal.classList.remove('show');
     currentVoter = null;
     document.querySelector('.cand-section')?.classList.remove('show');
     document.querySelector('.submit-wrap')?.classList.remove('show');
+    nameDisplay.textContent = "";
+    kelasDisplay.textContent = "";
+    successMessage.style.display = 'none';
     return;
   }
 
-  nameDisplay.textContent = "Memvalidasi kode...";
-  kelasDisplay.textContent = "";
+  const tokenNumber = parseInt(code, 10);
+  if (tokenNumber < 1 || tokenNumber > 92) {
+    reveal.classList.add('show');
+    nameDisplay.textContent = "Data Bapak/Ibu Guru Tidak Ditemukan";
+    kelasDisplay.textContent = `Token ${code} tidak terdaftar.`;
+    currentVoter = null;
+    document.querySelector('.cand-section')?.classList.remove('show');
+    document.querySelector('.submit-wrap')?.classList.remove('show');
+    successMessage.style.display = 'none';
+    return;
+  }
+
   reveal.classList.add('show');
+  nameDisplay.textContent = "Memvalidasi token guru...";
+  kelasDisplay.textContent = "";
+
+  await fetchTeacherData(code);
+}
+
+async function fetchTeacherData(validToken) {
+  const reveal = document.getElementById('name-reveal');
+  const nameDisplay = document.getElementById('status-title');
+  const kelasDisplay = document.getElementById('status-desc');
+  const successMessage = document.getElementById('success-message');
 
   let nama = null;
+  const tokenIdInt = parseInt(validToken, 10);
 
   if (supabaseClient) {
     try {
       const { data, error } = await supabaseClient
         .from('teachers')
         .select('nama')
-        .eq('code', code)
+        .eq('id', tokenIdInt)
         .maybeSingle();
       if (error) throw error;
       if (data) nama = data.nama;
     } catch (e) {
-      console.warn("Supabase fetch teacher name failed, falling back to local seed.", e);
+      console.error("Gagal mengambil data guru dari Supabase:", e);
     }
   }
 
   if (!nama) {
-    const t = TEACHERS.find(x => x.code.toUpperCase() === code);
+    const t = TEACHERS.find(x => parseInt(x.id, 10) === tokenIdInt);
     nama = t ? t.nama : null;
   }
 
@@ -355,19 +389,108 @@ async function onTeacherCodeChange() {
     currentVoter = {
       name: nama,
       role: 'guru',
-      identifier: `Guru | Kode ${code}`,
-      metadata: { code }
+      identifier: `Guru | ID ${validToken}`,
+      metadata: { code: validToken }
     };
     nameDisplay.textContent = nama;
-    kelasDisplay.textContent = `Pendidik / Tenaga Kependidikan · Kode: ${code}`;
-    
+    kelasDisplay.textContent = `Pendidik / Tenaga Kependidikan · ID Guru: ${validToken}`;
+    successMessage.style.display = 'block';
     document.querySelector('.cand-section')?.classList.add('show');
     document.querySelector('.submit-wrap')?.classList.add('show');
   } else {
-    nameDisplay.textContent = "Kode Tidak Valid";
-    kelasDisplay.textContent = "Periksa kembali kode guru Anda.";
     currentVoter = null;
-    
+    nameDisplay.textContent = "Data Bapak/Ibu Guru Tidak Ditemukan";
+    kelasDisplay.textContent = `Token ${validToken} tidak terdaftar.`;
+    successMessage.style.display = 'none';
+    document.querySelector('.cand-section')?.classList.remove('show');
+    document.querySelector('.submit-wrap')?.classList.remove('show');
+    reveal.classList.add('show');
+  }
+}
+
+async function onStudentCodeChange() {
+  const tokenEl = document.getElementById('input-kode-siswa');
+  const token = tokenEl ? tokenEl.value.trim().toUpperCase() : '';
+  const reveal = document.getElementById('name-reveal');
+  const nameDisplay = document.getElementById('status-title');
+  const kelasDisplay = document.getElementById('status-desc');
+  const successMessage = document.getElementById('success-message');
+
+  if (token.length < 6) {
+    reveal.classList.remove('show');
+    currentVoter = null;
+    document.querySelector('.cand-section')?.classList.remove('show');
+    document.querySelector('.submit-wrap')?.classList.remove('show');
+    successMessage.style.display = 'none';
+    return;
+  }
+
+  nameDisplay.textContent = "Memvalidasi kode token...";
+  kelasDisplay.textContent = "";
+  successMessage.style.display = 'none';
+  reveal.classList.add('show');
+
+  const tokenPattern = /^(X|XI|XII)(APHP|DKV|KULINER|PS|PS|RPL)([1-3])(\d{2})$/;
+  const match = token.match(tokenPattern);
+
+  if (!match) {
+    nameDisplay.textContent = "Format Token Salah";
+    kelasDisplay.textContent = "Gunakan format: TINGKAT + JURUSAN + ROMBEL + 2 DIGIT ABSEN. Contoh: XRPL301";
+    currentVoter = null;
+    document.querySelector('.cand-section')?.classList.remove('show');
+    document.querySelector('.submit-wrap')?.classList.remove('show');
+    return;
+  }
+
+  const tingkat = match[1];
+  const jurusan = match[2];
+  const rombel = match[3];
+  const absen = parseInt(match[4], 10);
+
+  const namaKelasTarget = `${tingkat} ${jurusan} ${rombel}`;
+
+  let namaSiswa = null;
+
+  if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('students')
+        .select('nama')
+        .eq('kelas', namaKelasTarget)
+        .eq('absen', absen)
+        .maybeSingle();
+      if (error) throw error;
+      if (data) namaSiswa = data.nama;
+    } catch (e) {
+      console.error("Gagal mengambil data token siswa dari Supabase:", e);
+    }
+  }
+
+  if (!namaSiswa) {
+    const s = (SISWA[namaKelasTarget] || []).find(x => x.absen === absen);
+    namaSiswa = s ? s.nama : null;
+  }
+
+  if (namaSiswa) {
+    currentVoter = {
+      name: namaSiswa,
+      role: 'siswa',
+      identifier: `${namaKelasTarget} | Absen ${absen}`,
+      metadata: { kelas: namaKelasTarget, absen: absen }
+    };
+
+    nameDisplay.textContent = namaSiswa;
+    kelasDisplay.textContent = `Siswa • Kelas ${namaKelasTarget} • No. Absen ${absen}`;
+    successMessage.style.display = 'block';
+
+    document.querySelector('.cand-section')?.classList.add('show');
+    document.querySelector('.submit-wrap')?.classList.add('show');
+  } else {
+    nameDisplay.textContent = "Data Siswa Tidak Ditemukan";
+    kelasDisplay.textContent = `Tidak ada siswa di kelas ${namaKelasTarget} dengan nomor absen ${absen}.`;
+    successMessage.style.display = 'none';
+    currentVoter = null;
+
     document.querySelector('.cand-section')?.classList.remove('show');
     document.querySelector('.submit-wrap')?.classList.remove('show');
   }
@@ -709,12 +832,12 @@ async function renderAdmin() {
   const teacherVotes = votes.filter(v => v.voter_role === 'guru');
   const guruRows = teacherVotes.length ? teacherVotes.map((v, i) => {
     const formattedTime = new Date(v.timestamp).toLocaleString('id-ID');
-    const code = v.voter_identifier.split('Kode')[1]?.trim() || '';
+    const idGuru = v.voter_identifier.split('ID')[1]?.trim() || '';
     return `
       <tr>
         <td style="color:#888">${i + 1}</td>
         <td><strong>${v.voter_name}</strong></td>
-        <td><code>${code}</code></td>
+        <td><code>${idGuru}</code></td>
         <td><span class="pbadge pb${v.candidate_id}">Kand.${v.candidate_id}</span></td>
         <td style="font-size:11px; color:#666">${formattedTime}</td>
       </tr>
@@ -729,7 +852,7 @@ async function renderAdmin() {
           <tr>
             <th style="width:40px;">#</th>
             <th>Nama Lengkap</th>
-            <th>Kode Guru</th>
+            <th>ID Guru</th>
             <th>Pilihan</th>
             <th>Waktu Voting</th>
           </tr>
@@ -763,7 +886,9 @@ async function renderAdmin() {
 
   if (!filterGrade && !filterMajor) {
     TEACHERS.forEach(t => {
-      const id = `Guru | Kode ${t.code}`;
+      // Pad ID ke format 2 digit agar sinkron saat mengecek pemilih guru yang belum memilih
+      const formatId = String(t.id).padStart(2, '0');
+      const id = `Guru | ID ${formatId}`;
       if (!votedIdentifierSet.has(id)) {
         belumList.push({ name: t.nama, role: 'guru', identifier: id });
       }

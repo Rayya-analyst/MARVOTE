@@ -62,17 +62,20 @@
 
         <div id="voter-siswa-container">
           <div class="fg">
-            <div class="step-row"><div class="step-num">2</div><div class="step-label">Pilih Kelas <span class="req">*</span></div></div>
-            <select id="sel-kelas" onchange="onKelasChange()">
-              <option value="">— Pilih kelas kamu —</option>
-            </select>
-          </div>
-
-          <div class="fg">
-            <div class="step-row"><div class="step-num">3</div><div class="step-label">Pilih No. Absen <span class="req">*</span></div></div>
-            <select id="sel-absen" onchange="onAbsenChange()" disabled>
-              <option value="">— Pilih kelas dulu —</option>
-            </select>
+            <div class="step-row">
+              <div class="step-num">2</div>
+              <div class="step-label">Masukkan Kode Token Siswa <span class="req">*</span></div>
+            </div>
+            <div class="teacher-input-wrap">
+              <input type="text"
+                     id="input-kode-siswa"
+                     placeholder="Contoh: XRPL301 atau XDKV115"
+                     oninput="onStudentCodeChange()"
+                     maxlength="12">
+            </div>
+            <small style="color: #666; margin-top: 5px; display: block;">
+              *Format: KELAS + JURUSAN + 2 DIGIT ABSEN (Contoh absen 5 ditulis 05)
+            </small>
           </div>
         </div>
 
@@ -86,10 +89,12 @@
         </div>
 
         <div class="name-reveal" id="name-reveal">
-          <div class="label">Identitas Terverifikasi</div>
-          <div class="name" id="name-display">—</div>
-          <div class="kelas-info" id="kelas-display"></div>
-          <div class="name-confirm"><i class="ti ti-circle-check" aria-hidden="true"></i> Data ditemukan — silakan lanjut memilih kandidat</div>
+          <div id="status-box">
+            <div class="label">Identitas Terverifikasi</div>
+            <div class="name status-title" id="status-title">—</div>
+            <div class="kelas-info status-desc" id="status-desc"></div>
+            <div class="name-confirm" id="success-message" style="display: none;"><i class="ti ti-circle-check" aria-hidden="true"></i> Data ditemukan — silakan lanjut memilih kandidat</div>
+          </div>
         </div>
       </div>
 
@@ -200,8 +205,8 @@
             <option value="KULINER 1">KULINER 1</option>
             <option value="KULINER 2">KULINER 2</option>
             <option value="KULINER 3">KULINER 3</option>
-            <option value="LPS 1">LPS 1</option>
-            <option value="LPS 2">LPS 2</option>
+            <option value="PS 1">PS 1</option>
+            <option value="PS 2">PS 2</option>
             <option value="RPL 1">RPL 1</option>
             <option value="RPL 2">RPL 2</option>
             <option value="RPL 3">RPL 3</option>
