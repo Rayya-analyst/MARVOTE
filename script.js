@@ -16,7 +16,6 @@ try {
 }
 
 let SISWA = {};
-let TEACHERS = [];
 let CANDIDATES = [];
 
 const ADMIN_PASS = "osismarganaduvanesto";
@@ -81,14 +80,6 @@ async function initApp() {
     try {
       console.log("Memuat data master dari Supabase...");
 
-      const { data: guruData, error: guruError } = await supabaseClient
-        .from('teachers')
-        .select('*')
-        .order('nama', { ascending: true });
-      
-      if (guruError) throw guruError;
-      TEACHERS = guruData || [];
-
       const { data: siswaData, error: siswaError } = await supabaseClient
         .from('students')
         .select('*');
@@ -123,22 +114,11 @@ async function initApp() {
         console.log("Data kandidat berhasil dimuat dari Supabase.");
       }
 
-      console.log("Data master siswa, guru, and kandidat berhasil disinkronkan dari cloud.");
+      console.log("Data master siswa dan kandidat berhasil disinkronkan dari cloud.");
 
     } catch (error) {
       console.error("Gagal memuat data dari Supabase, mengaktifkan mode aman lokal:", error);
     }
-  }
-
-  const selKelas = document.getElementById('sel-kelas');
-  if (selKelas) {
-    selKelas.innerHTML = '<option value="">— Pilih kelas kamu —</option>';
-    sortKelasKeys(Object.keys(SISWA)).forEach(k => {
-      const o = document.createElement('option');
-      o.value = k;
-      o.textContent = k;
-      selKelas.appendChild(o);
-    });
   }
 
   if (typeof renderCandidates === 'function') {
@@ -181,7 +161,7 @@ function selectCandidate(id) {
 }
 
 function setRole(role) {
-  voterRole = role;
+  voterRole = 'siswa';
   currentVoter = null;
   selectedCandidateId = null;
   document.getElementById('name-reveal').classList.remove('show');
@@ -190,24 +170,7 @@ function setRole(role) {
   document.querySelector('.cand-section')?.classList.remove('show');
   document.querySelector('.submit-wrap')?.classList.remove('show');
 
-  const btnSiswa = document.getElementById('role-siswa');
-  const btnGuru = document.getElementById('role-guru');
-  const containerSiswa = document.getElementById('voter-siswa-container');
-  const containerGuru = document.getElementById('voter-guru-container');
-
-  if (role === 'siswa') {
-    btnSiswa.classList.add('active');
-    btnGuru.classList.remove('active');
-    containerSiswa.style.display = 'block';
-    containerGuru.style.display = 'none';
-    resetSiswaForm();
-  } else {
-    btnGuru.classList.add('active');
-    btnSiswa.classList.remove('active');
-    containerSiswa.style.display = 'none';
-    containerGuru.style.display = 'block';
-    resetGuruForm();
-  }
+  resetSiswaForm();
 }
 
 function resetSiswaForm() {
@@ -218,194 +181,6 @@ function resetSiswaForm() {
   document.getElementById('name-reveal')?.classList.remove('show');
   document.querySelector('.cand-section')?.classList.remove('show');
   document.querySelector('.submit-wrap')?.classList.remove('show');
-}
-
-function resetGuruForm() {
-  document.getElementById('input-kode-guru').value = '';
-}
-
-function onKelasChange() {
-  const kelas = document.getElementById('sel-kelas').value;
-  const selAbsen = document.getElementById('sel-absen');
-  const reveal = document.getElementById('name-reveal');
-  reveal.classList.remove('show');
-  currentVoter = null;
-  selAbsen.innerHTML = '<option value="">— Pilih nomor absen —</option>';
-
-  document.querySelector('.cand-section')?.classList.remove('show');
-  document.querySelector('.submit-wrap')?.classList.remove('show');
-  
-  if (!kelas) {
-    selAbsen.disabled = true;
-    return;
-  }
-  
-  selAbsen.disabled = false;
-  const siswaList = SISWA[kelas] || [];
-  siswaList.forEach(s => {
-    const o = document.createElement('option');
-    o.value = s.absen;
-    o.textContent = `Absen ${s.absen} — ${s.nama}`;
-    selAbsen.appendChild(o);
-  });
-}
-
-async function onAbsenChange() {
-  const kelas = document.getElementById('sel-kelas').value;
-  const absenStr = document.getElementById('sel-absen').value;
-  const reveal = document.getElementById('name-reveal');
-  
-  if (!kelas || !absenStr) {
-    reveal.classList.remove('show');
-    currentVoter = null;
-    document.querySelector('.cand-section')?.classList.remove('show');
-    document.querySelector('.submit-wrap')?.classList.remove('show');
-    document.getElementById('success-message').style.display = 'none';
-    return;
-  }
-  
-  const absen = parseInt(absenStr);
-  const nameDisplay = document.getElementById('status-title');
-  const kelasDisplay = document.getElementById('status-desc');
-  const successMessage = document.getElementById('success-message');
-  
-  nameDisplay.textContent = "Mengambil data...";
-  kelasDisplay.textContent = "";
-  successMessage.style.display = 'none';
-  reveal.classList.add('show');
-
-  let nama = null;
-  
-  if (supabaseClient) {
-    try {
-      const { data, error } = await supabaseClient
-        .from('students')
-        .select('nama')
-        .eq('kelas', kelas)
-        .eq('absen', absen)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) nama = data.nama;
-    } catch (e) {
-      console.warn("Supabase fetch student name failed, falling back to local seed.", e);
-    }
-  }
-
-  if (!nama) {
-    const s = (SISWA[kelas] || []).find(x => x.absen === absen);
-    nama = s ? s.nama : null;
-  }
-
-  if (nama) {
-    currentVoter = {
-      name: nama,
-      role: 'siswa',
-      identifier: `${kelas} | Absen ${absen}`,
-      metadata: { kelas, absen }
-    };
-    nameDisplay.textContent = nama;
-    kelasDisplay.textContent = `Siswa · Kelas ${kelas} · Absen ${absen}`;
-    successMessage.style.display = 'block';
-    
-    document.querySelector('.cand-section')?.classList.add('show');
-    document.querySelector('.submit-wrap')?.classList.add('show');
-  } else {
-    nameDisplay.textContent = "Data Tidak Ditemukan";
-    kelasDisplay.textContent = "Pastikan kelas dan absen benar.";
-    currentVoter = null;
-    
-    document.querySelector('.cand-section')?.classList.remove('show');
-    document.querySelector('.submit-wrap')?.classList.remove('show');
-  }
-}
-
-async function onTeacherCodeChange() {
-  const code = document.getElementById('input-kode-guru').value.trim();
-  const reveal = document.getElementById('name-reveal');
-  const nameDisplay = document.getElementById('status-title');
-  const kelasDisplay = document.getElementById('status-desc');
-  const successMessage = document.getElementById('success-message');
-
-  const teacherTokenPattern = /^\d{2}$/;
-  if (!teacherTokenPattern.test(code)) {
-    reveal.classList.remove('show');
-    currentVoter = null;
-    document.querySelector('.cand-section')?.classList.remove('show');
-    document.querySelector('.submit-wrap')?.classList.remove('show');
-    nameDisplay.textContent = "";
-    kelasDisplay.textContent = "";
-    successMessage.style.display = 'none';
-    return;
-  }
-
-  const tokenNumber = parseInt(code, 10);
-  if (tokenNumber < 1 || tokenNumber > 92) {
-    reveal.classList.add('show');
-    nameDisplay.textContent = "Data Bapak/Ibu Guru Tidak Ditemukan";
-    kelasDisplay.textContent = `Token ${code} tidak terdaftar.`;
-    currentVoter = null;
-    document.querySelector('.cand-section')?.classList.remove('show');
-    document.querySelector('.submit-wrap')?.classList.remove('show');
-    successMessage.style.display = 'none';
-    return;
-  }
-
-  reveal.classList.add('show');
-  nameDisplay.textContent = "Memvalidasi token guru...";
-  kelasDisplay.textContent = "";
-
-  await fetchTeacherData(code);
-}
-
-async function fetchTeacherData(validToken) {
-  const reveal = document.getElementById('name-reveal');
-  const nameDisplay = document.getElementById('status-title');
-  const kelasDisplay = document.getElementById('status-desc');
-  const successMessage = document.getElementById('success-message');
-
-  let nama = null;
-  const tokenIdInt = parseInt(validToken, 10);
-
-  if (supabaseClient) {
-    try {
-      const { data, error } = await supabaseClient
-        .from('teachers')
-        .select('nama')
-        .eq('id', tokenIdInt)
-        .maybeSingle();
-      if (error) throw error;
-      if (data) nama = data.nama;
-    } catch (e) {
-      console.error("Gagal mengambil data guru dari Supabase:", e);
-    }
-  }
-
-  if (!nama) {
-    const t = TEACHERS.find(x => parseInt(x.id, 10) === tokenIdInt);
-    nama = t ? t.nama : null;
-  }
-
-  if (nama) {
-    currentVoter = {
-      name: nama,
-      role: 'guru',
-      identifier: `Guru | ID ${validToken}`,
-      metadata: { code: validToken }
-    };
-    nameDisplay.textContent = nama;
-    kelasDisplay.textContent = `Pendidik / Tenaga Kependidikan · ID Guru: ${validToken}`;
-    successMessage.style.display = 'block';
-    document.querySelector('.cand-section')?.classList.add('show');
-    document.querySelector('.submit-wrap')?.classList.add('show');
-  } else {
-    currentVoter = null;
-    nameDisplay.textContent = "Data Bapak/Ibu Guru Tidak Ditemukan";
-    kelasDisplay.textContent = `Token ${validToken} tidak terdaftar.`;
-    successMessage.style.display = 'none';
-    document.querySelector('.cand-section')?.classList.remove('show');
-    document.querySelector('.submit-wrap')?.classList.remove('show');
-    reveal.classList.add('show');
-  }
 }
 
 async function onStudentCodeChange() {
@@ -681,9 +456,7 @@ async function renderAdmin() {
 
   const totalVotesCast = votes.length;
   
-  const totalSiswa = Object.values(SISWA).reduce((sum, arr) => sum + arr.length, 0);
-  const totalGuru = TEACHERS.length;
-  const totalMasterDaftar = totalSiswa + totalGuru;
+  const totalMasterDaftar = Object.values(SISWA).reduce((sum, arr) => sum + arr.length, 0);
   
   const pctTurnout = totalMasterDaftar ? Math.round((totalVotesCast / totalMasterDaftar) * 100) : 0;
   const belumVotedCount = totalMasterDaftar - totalVotesCast;
@@ -735,9 +508,6 @@ async function renderAdmin() {
   }
 
   const filteredVotes = votes.filter(v => {
-    if (v.voter_role === 'guru') {
-      return !filterGrade && !filterMajor;
-    }
     const kelas = v.voter_identifier.split('|')[0].trim();
     const parts = kelas.split(' ');
     const grade = parts[0];
@@ -829,39 +599,6 @@ async function renderAdmin() {
 
   document.getElementById('kelas-table').innerHTML = kelasTableContent;
 
-  const teacherVotes = votes.filter(v => v.voter_role === 'guru');
-  const guruRows = teacherVotes.length ? teacherVotes.map((v, i) => {
-    const formattedTime = new Date(v.timestamp).toLocaleString('id-ID');
-    const idGuru = v.voter_identifier.split('ID')[1]?.trim() || '';
-    return `
-      <tr>
-        <td style="color:#888">${i + 1}</td>
-        <td><strong>${v.voter_name}</strong></td>
-        <td><code>${idGuru}</code></td>
-        <td><span class="pbadge pb${v.candidate_id}">Kand.${v.candidate_id}</span></td>
-        <td style="font-size:11px; color:#666">${formattedTime}</td>
-      </tr>
-    `;
-  }).join('') : `<tr><td colspan="5" class="empty-state">Belum ada suara masuk dari Guru / Staff.</td></tr>`;
-
-  const guruTableEl = document.getElementById('guru-table');
-  if (guruTableEl) {
-    guruTableEl.innerHTML = `
-      <table class="vtable">
-        <thead>
-          <tr>
-            <th style="width:40px;">#</th>
-            <th>Nama Lengkap</th>
-            <th>ID Guru</th>
-            <th>Pilihan</th>
-            <th>Waktu Voting</th>
-          </tr>
-        </thead>
-        <tbody>${guruRows}</tbody>
-      </table>
-    `;
-  }
-
   const votedIdentifierSet = new Set(votes.map(v => v.voter_identifier));
   const belumList = [];
 
@@ -883,17 +620,6 @@ async function renderAdmin() {
       }
     });
   });
-
-  if (!filterGrade && !filterMajor) {
-    TEACHERS.forEach(t => {
-      // Pad ID ke format 2 digit agar sinkron saat mengecek pemilih guru yang belum memilih
-      const formatId = String(t.id).padStart(2, '0');
-      const id = `Guru | ID ${formatId}`;
-      if (!votedIdentifierSet.has(id)) {
-        belumList.push({ name: t.nama, role: 'guru', identifier: id });
-      }
-    });
-  }
 
   const belumRows = belumList.length ? belumList.map((b, i) => `
     <tr>
@@ -956,16 +682,11 @@ async function seedSupabase() {
       }
     }
 
-    const { error: guruErr } = await supabaseClient.from('teachers').insert(TEACHERS);
-    if (guruErr && !guruErr.message.includes("duplicate key")) {
-      throw guruErr;
-    }
-
-    alert(`Seeding Selesai!\nMaster Data: ${studentRows.length} siswa (36 kelas) & ${TEACHERS.length} guru berhasil disinkronisasi ke tabel Supabase.`);
+    alert(`Seeding Selesai!\nMaster Data: ${studentRows.length} siswa (36 kelas) berhasil disinkronisasi ke tabel Supabase.`);
     renderAdmin();
   } catch (e) {
     console.error(e);
-    alert(`Seeding Gagal!\nPastikan Anda sudah membuat tabel 'students' dan 'teachers' di SQL editor Supabase.\n\nError: ${e.message}`);
+    alert(`Seeding Gagal!\nPastikan Anda sudah membuat tabel 'students' di SQL editor Supabase.\n\nError: ${e.message}`);
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalText;

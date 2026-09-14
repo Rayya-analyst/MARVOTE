@@ -40,52 +40,28 @@
       <div class="hero-eyebrow">PILKETOS ONLINE SMK NEGERI 2 MOJOKERTO</div>
       <h2><span class="hp">Pilih</span><br>Ketua OSIS<br><span class="hm">Pilihanmu!</span></h2>
       <p class="hero-sub">Suaramu menentukan masa depan OSIS SMK Negeri 2 Mojokerto. Satu suara, satu pilihan, satu perubahan nyata.</p>
-      <button class="btn-hero" onclick="startVoting()">Mulai Memilih</button>
+      <div class="hero-actions">
+        <button class="btn-hero" onclick="startVoting()">Mulai Memilih</button>
+        <button class="btn-hero btn-admin-entry" onclick="showPage('admin-login')"><i class="ti ti-shield-lock" aria-hidden="true"></i> Masuk Admin</button>
+      </div>
     </div>
 
     <div class="vote-main-content">
       <div id="form-anchor" class="form-section" style="margin-bottom: 40px;">
         <div class="form-section-title">Identitas Pemilih</div>
-        <div class="form-section-sub">Tentukan peran Anda terlebih dahulu untuk validasi data</div>
+        <div class="form-section-sub">Masukkan kode token siswa untuk validasi data</div>
 
         <div class="fg">
-          <div class="step-row"><div class="step-num">1</div><div class="step-label">Pilih Peran Anda <span class="req">*</span></div></div>
-          <div class="role-selector">
-            <button type="button" class="btn-role active" id="role-siswa" onclick="setRole('siswa')">
-              <i class="ti ti-school"></i> Siswa
-            </button>
-            <button type="button" class="btn-role" id="role-guru" onclick="setRole('guru')">
-              <i class="ti ti-user-star"></i> Guru / Staff
-            </button>
+          <div class="step-row">
+            <div class="step-num">1</div>
+            <div class="step-label">Masukkan Kode Token Siswa <span class="req">*</span></div>
           </div>
-        </div>
-
-        <div id="voter-siswa-container">
-          <div class="fg">
-            <div class="step-row">
-              <div class="step-num">2</div>
-              <div class="step-label">Masukkan Kode Token Siswa <span class="req">*</span></div>
-            </div>
-            <div class="teacher-input-wrap">
-              <input type="text"
-                     id="input-kode-siswa"
-                     placeholder="Contoh: XRPL301 atau XDKV115"
-                     oninput="onStudentCodeChange()"
-                     maxlength="12">
-            </div>
-            <small style="color: #666; margin-top: 5px; display: block;">
-              *Format: KELAS + JURUSAN + 2 DIGIT ABSEN (Contoh absen 5 ditulis 05)
-            </small>
+          <div class="voter-input-wrap">
+            <input type="text" id="input-kode-siswa" placeholder="Contoh: XRPL301 atau XDKV115" oninput="onStudentCodeChange()" maxlength="12">
           </div>
-        </div>
-
-        <div id="voter-guru-container" style="display:none">
-          <div class="fg">
-            <div class="step-row"><div class="step-num">2</div><div class="step-label">Masukkan Urutan Guru <span class="req">*</span></div></div>
-            <div class="teacher-input-wrap">
-              <input type="text" id="input-kode-guru" placeholder="Contoh: 01" oninput="onTeacherCodeChange()" style="text-transform: uppercase;">
-            </div>
-          </div>
+          <small style="color: #666; margin-top: 5px; display: block;">
+            *Format: KELAS + JURUSAN + 2 DIGIT ABSEN (Contoh absen 5 ditulis 05)
+          </small>
         </div>
 
         <div class="name-reveal" id="name-reveal">
@@ -217,13 +193,11 @@
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab(this,'tc-all')">Semua Pemilih</button>
         <button class="tab-btn" onclick="switchTab(this,'tc-kelas')">Per Kelas (Siswa)</button>
-        <button class="tab-btn" onclick="switchTab(this,'tc-guru')">Guru / Staff</button>
         <button class="tab-btn" onclick="switchTab(this,'tc-belum')">Belum Memilih</button>
       </div>
       
       <div id="tc-all" class="tab-content active"><div class="table-wrap" id="voter-table"></div></div>
       <div id="tc-kelas" class="tab-content"><div id="kelas-table"></div></div>
-      <div id="tc-guru" class="tab-content"><div class="table-wrap" id="guru-table"></div></div>
       <div id="tc-belum" class="tab-content"><div class="table-wrap" id="belum-table"></div></div>
       
       <div class="act-row">

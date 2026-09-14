@@ -12,14 +12,14 @@ The platform is built using a modern, lightweight, and highly responsive technol
 
 * **Front-End UI/UX:** Built with clean, semantic **HTML5**, **Modern JavaScript (ES6+)**, and customized utility frameworks styled with the premium **Plus Jakarta Sans** typeface to deliver a mobile-first, fluid, and foolproof user experience.
 * **Database & Backend Service:** Powered by **Supabase (PostgreSQL)**, managing real-time data streaming, dynamic asset serving, and relational data integrity.
-* **Security Layer:** Implements Supabase **Row Level Security (RLS)** policies to enforce strict data isolation. This guarantees that while candidate profiles, student lists, and faculty lists are public (`SELECT` only), voting transactions remain protected against unauthorized client-side manipulation.
+* **Security Layer:** Implements Supabase **Row Level Security (RLS)** policies to enforce strict data isolation. This guarantees that while candidate profiles and student lists are public (`SELECT` only), voting transactions remain protected against unauthorized client-side manipulation.
 
 ---
 
 ## Key Features
 
 * **Dynamic Candidate Hub:** Candidate profiles, campaign numbers, color schemes, and structural layout configurations are fetched dynamically from the cloud database upon application initialization, eliminating the need for hardcoded front-end data.
-* **Automated Master Data Synchronization:** The system automatically cross-references and populates voter options (such as student classes, attendance rolls, and faculty codes) directly from the live PostgreSQL database, sorting and restructuring raw flat database rows into organized user interfaces on the fly.
+* **Automated Master Data Synchronization:** The system automatically cross-references and populates voter options such as student classes and attendance rolls directly from the live PostgreSQL database, sorting and restructuring raw flat database rows into organized user interfaces on the fly.
 * **Real-Time Data Pipeline:** Built with the capacity to stream vote counts and user engagement metrics instantly, laying the foundation for live analytics and post-election data visualization.
 * **Strict Security Hardening:** Leverages granular database policies to restrict API commands based on roles (e.g., public anonymous read-only access for profiles vs. restricted execution for ballot submissions).
 
@@ -42,19 +42,7 @@ create table students (
 
 ```
 
-### 2. Teachers Table (`teachers`)
-
-Stores instructor identification strings for faculty voters.
-
-```sql
-create table teachers (
-  code text primary key,
-  nama text not null
-);
-
-```
-
-### 3. Candidates Table (`candidates`)
+### 2. Candidates Table (`candidates`)
 
 Stores the dynamic card metadata for the running presidential pairs.
 
@@ -72,7 +60,7 @@ create table candidates (
 
 ```
 
-### 4. Votes Table (`votes`)
+### 3. Votes Table (`votes`)
 
 Logs anonymous electoral choices with strict client-side integrity blocks.
 
@@ -95,7 +83,7 @@ create table votes (
 
 As a project designed for a professional engineering portfolio, MARVOTE demonstrates proficiency in several core competencies:
 
-1. **Database Design & Normalization:** Translating complex nested JSON structures into clean, query-efficient relational database tables (`candidates`, `students`, `teachers`, `votes`).
+1. **Database Design & Normalization:** Translating complex nested JSON structures into clean, query-efficient relational database tables (`candidates`, `students`, `votes`).
 2. **Asynchronous JavaScript & API Integration:** Implementing advanced `async/await` design patterns, robust error handling, and local fallback mechanisms to ensure the web application remains functional even during unexpected network latency or API drops.
 3. **Data-Driven Architecture:** Creating an application environment where the entire user experience changes dynamically based solely on modifications made to the backend data layer, minimizing maintenance overhead.
 

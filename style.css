@@ -263,6 +263,24 @@ body {
   box-shadow: 1px 1px 0px var(--pink);
 }
 
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-admin-entry {
+  background: white;
+  color: var(--dark);
+  box-shadow: 5px 5px 0px var(--dark);
+}
+
+.btn-admin-entry:hover {
+  box-shadow: 8px 8px 0px var(--dark);
+}
+
 .vote-main-content {
   display: none;
 }
@@ -382,54 +400,7 @@ body {
   font-weight: 900;
 }
 
-.role-selector {
-  display: flex;
-  gap: 16px;
-  margin-top: 10px;
-}
-
-.btn-role {
-  flex: 1;
-  padding: 16px 20px;
-  background: white;
-  color: var(--dark);
-  border: 3px solid var(--dark);
-  border-radius: 14px;
-  font-family: var(--sans);
-  font-weight: 800;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  box-shadow: 4px 4px 0px var(--dark);
-  transition: var(--transition);
-}
-
-.btn-role i {
-  font-size: 20px;
-}
-
-.btn-role:hover {
-  transform: translateY(-3px);
-  box-shadow: 7px 7px 0px var(--dark);
-  background: var(--yellow-light);
-}
-
-.btn-role:focus {
-  outline: none;
-  background: var(--pink-light);
-  border-color: var(--pink);
-}
-
-.btn-role.active {
-  background: var(--pink);
-  transform: translateY(2px);
-  box-shadow: 1px 1px 0px var(--dark);
-}
-
-select, .teacher-input-wrap input {
+select, .voter-input-wrap input {
   width: 100%;
   padding: 16px 20px;
   border: 3px solid var(--dark);
@@ -452,7 +423,7 @@ select {
   cursor: pointer;
 }
 
-select:focus, .teacher-input-wrap input:focus {
+select:focus, .voter-input-wrap input:focus {
   outline: none;
   background-color: white;
   border-color: var(--pink);
