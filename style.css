@@ -98,8 +98,9 @@ body {
 }
 
 .logo-group img {
-  width: 52px;
   height: 52px;
+  width: auto;
+  max-width: 52px;
   object-fit: contain;
   display: block;
 }
@@ -694,8 +695,8 @@ select:disabled {
     gap: 4px;
   }
   .logo-group img {
-    width: 36px;
     height: 36px;
+    max-width: 36px;
   }
   .brand-title {
     font-size: 12px;
