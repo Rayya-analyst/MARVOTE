@@ -27,7 +27,7 @@
         </div>
       </div>
       <div class="navbar-actions">
-        <button class="btn-admin-header" onclick="showPage('admin-login')"><i class="ti ti-shield-lock" aria-hidden="true"></i> Masuk Admin</button>
+        <a class="btn-report-header" href="live-report.html"><i class="ti ti-activity" aria-hidden="true"></i> Live Report</a>
         <button class="btn-logout" id="btn-exit-vote" onclick="resetForm()"><i class="ti ti-logout" aria-hidden="true"></i> Keluar</button>
       </div>
     </nav>
@@ -53,7 +53,7 @@
             <div class="step-label">Masukkan Kode Token Siswa <span class="req">*</span></div>
           </div>
           <div class="voter-input-wrap">
-            <input type="text" id="input-kode-siswa" placeholder="Contoh: XRPL301 atau XDKV115" oninput="onStudentCodeChange()" maxlength="12">
+            <input type="text" id="input-kode-siswa" placeholder="Contoh: XIIRPL228 atau XIIPS205" oninput="onStudentCodeChange()" maxlength="12">
           </div>
           <small style="color: #666; margin-top: 5px; display: block;">
             *Format: KELAS + JURUSAN + 2 DIGIT ABSEN (Contoh absen 5 ditulis 05)
@@ -65,7 +65,7 @@
             <div class="label">Identitas Terverifikasi</div>
             <div class="name status-title" id="status-title">—</div>
             <div class="kelas-info status-desc" id="status-desc"></div>
-            <div class="name-confirm" id="success-message" style="display: none;"><i class="ti ti-circle-check" aria-hidden="true"></i> Data ditemukan — silakan lanjut memilih kandidat</div>
+            <div class="name-confirm" id="success-message" style="display: none;"><i class="ti ti-circle-check" aria-hidden="true"></i> Data ditemukan — silakan lanjut memilih paslon</div>
           </div>
         </div>
       </div>
@@ -73,9 +73,9 @@
       <div class="cand-section">
         <div class="step-row" style="margin-bottom: 12px;">
           <div class="step-num">4</div>
-          <div class="step-label">Pilih Kandidat Pilihanmu <span class="req">*</span></div>
+          <div class="step-label">Pilih Paslon Pilihanmu <span class="req">*</span></div>
         </div>
-        <div class="cand-sub">Gunakan hak suara Anda. Pilih salah satu kandidat di bawah ini:</div>
+        <div class="cand-sub">Gunakan hak suara Anda. Pilih salah satu paslon di bawah ini:</div>
         <div class="cand-list" id="cand-list"></div>
       </div>
 
@@ -83,7 +83,6 @@
       <div class="submit-wrap">
         <button class="btn-submit" id="btn-submit-vote" onclick="submitVote()">Kirim Suaraku</button>
       </div>
-      <div class="admin-link">Panitia? <a onclick="showPage('admin-login')">Masuk ke Dashboard Admin</a></div>
     </div>
   </div>
 
@@ -108,107 +107,6 @@
       <div class="receipt-card" id="receipt-out"></div>
     </div>
     <button class="btn-back" onclick="showPage('vote');resetForm()">Kembali ke Beranda</button>
-  </div>
-
-  <div id="page-admin-login" class="page admin-login-page">
-    <nav class="navbar" id="admin-login-navbar">
-      <div class="navbar-brand">
-        <div class="logo-group">
-          <img src="/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
-          <img src="/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
-          <img src="/logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
-        </div>
-        <div><div class="brand-title">OSIS SMKN 2 Mojokerto</div><div class="brand-sub">Dashboard Admin</div></div>
-      </div>
-    </nav>
-    <div class="admin-login-inner">
-      <h2 class="admin-login-h">Dashboard Panitia</h2>
-      <div class="admin-login-sub">Masukkan password panitia untuk melihat data real-time</div>
-      <div class="admin-card">
-        <div class="fg" style="margin-bottom:18px">
-          <label style="display:block;font-size:12px;font-weight:700;color:var(--dark);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Password Admin</label>
-          <input type="password" id="admin-pass" placeholder="Masukkan password" onkeydown="if(event.key==='Enter')adminLogin()">
-        </div>
-        <div class="err-box" id="admin-err" style="margin:0 0 14px"></div>
-        <button class="btn-submit" onclick="adminLogin()"><i class="ti ti-shield-check" aria-hidden="true"></i> Masuk</button>
-      </div>
-      <div class="admin-link" style="margin-top:20px"><a onclick="showPage('vote')">Kembali ke Voting</a></div>
-    </div>
-  </div>
-
-  <div id="page-admin" class="page admin-dash">
-    <nav class="navbar" id="admin-navbar">
-      <div class="navbar-brand">
-        <div class="logo-group">
-          <img src="/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
-          <img src="/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
-          <img src="/logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
-        </div>
-        <div><div class="brand-title">OSIS SMKN 2 Mojokerto</div><div class="brand-sub">Dashboard Admin</div></div>
-      </div>
-      <button class="btn-logout" onclick="adminLogout()"><i class="ti ti-logout" aria-hidden="true"></i> Keluar</button>
-    </nav>
-    <div class="dash-body">
-      <div class="kpi-grid" id="kpi-grid"></div>
-      
-      <div class="bar-wrap">
-        <div class="section-hd">Hasil Perolehan Suara</div>
-        <div id="bar-chart"></div>
-      </div>
-
-      <div class="table-control-row" style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <label for="filter-grade" style="font-size: 13px; font-weight: 800; color: var(--dark); text-transform: uppercase; letter-spacing: 0.5px;">Tingkat:</label>
-          <select id="filter-grade" onchange="renderAdmin()" style="width: auto; padding: 8px 36px 8px 16px; font-size: 13px; border: 2px solid var(--dark); border-radius: 8px; box-shadow: 2px 2px 0px var(--dark); cursor: pointer;">
-            <option value="">Semua Tingkat</option>
-            <option value="X">Kelas X</option>
-            <option value="XI">Kelas XI</option>
-            <option value="XII">Kelas XII</option>
-          </select>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <label for="filter-major" style="font-size: 13px; font-weight: 800; color: var(--dark); text-transform: uppercase; letter-spacing: 0.5px;">Jurusan/Rombel:</label>
-          <select id="filter-major" onchange="renderAdmin()" style="width: auto; padding: 8px 36px 8px 16px; font-size: 13px; border: 2px solid var(--dark); border-radius: 8px; box-shadow: 2px 2px 0px var(--dark); cursor: pointer;">
-            <option value="">Semua Jurusan</option>
-            <option value="APHP 1">APHP 1</option>
-            <option value="APHP 2">APHP 2</option>
-            <option value="DKV 1">DKV 1</option>
-            <option value="DKV 2">DKV 2</option>
-            <option value="KULINER 1">KULINER 1</option>
-            <option value="KULINER 2">KULINER 2</option>
-            <option value="KULINER 3">KULINER 3</option>
-            <option value="PS 1">PS 1</option>
-            <option value="PS 2">PS 2</option>
-            <option value="RPL 1">RPL 1</option>
-            <option value="RPL 2">RPL 2</option>
-            <option value="RPL 3">RPL 3</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab(this,'tc-all')">Semua Pemilih</button>
-        <button class="tab-btn" onclick="switchTab(this,'tc-kelas')">Per Kelas (Siswa)</button>
-        <button class="tab-btn" onclick="switchTab(this,'tc-belum')">Belum Memilih</button>
-      </div>
-      
-      <div id="tc-all" class="tab-content active"><div class="table-wrap" id="voter-table"></div></div>
-      <div id="tc-kelas" class="tab-content"><div id="kelas-table"></div></div>
-      <div id="tc-belum" class="tab-content"><div class="table-wrap" id="belum-table"></div></div>
-      
-      <div class="act-row">
-        <button class="btn-act" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> Unduh Data (.CSV)</button>
-        <button class="btn-act danger" onclick="if(confirm('PERINGATAN: Reset semua data voting dari database? Tindakan ini permanen!')){clearData();renderAdmin();}"><i class="ti ti-trash" aria-hidden="true"></i> Reset Hasil Voting</button>
-      </div>
-
-      <div class="admin-setup-panel" style="margin-top: 32px; border-top: 3px solid var(--dark); padding-top: 24px;">
-        <div class="section-hd" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-          <span><i class="ti ti-settings" aria-hidden="true"></i> Pengaturan & Skema Database</span>
-          <button class="btn-act" id="btn-seed" onclick="seedSupabase()" style="background: var(--yellow);"><i class="ti ti-database-import" aria-hidden="true"></i> Seed Master Data ke Supabase</button>
-        </div>
-      </div>
-
-    </div>
   </div>
 
   <script src="script.js" defer></script>

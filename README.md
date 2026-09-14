@@ -104,3 +104,9 @@ Open `index.html` directly or use the **Live Server** extension in VS Code.
 3. **Database Connectivity:**
 Ensure your local environment configuration points to the active `SUPABASE_URL` and valid `SUPABASE_ANON_KEY` variables inside `script.js`.
 
+## Separate Vercel Deployments
+
+The voter website is the project root and no longer contains admin markup or admin JavaScript. Deploy the voter files as `marvote.vercel.app`, excluding the `admin/` directory from that deployment (use a voter-only repository or the Vercel project ignore/build configuration).
+
+Deploy the `admin/` folder as a second Vercel project with **Root Directory** set to `admin`, for example `marvote-admin.vercel.app`. The admin project is self-contained and only reports class XII participation, voted status, unvoted status, student identity, and voting time. It does not load or display candidate choices.
+

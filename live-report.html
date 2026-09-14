@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Report Pemilihan Ketua OSIS</title>
+  <meta name="description" content="Live report partisipasi Pemilihan Ketua OSIS SMKN 2 Mojokerto kelas XII.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="grid-bg">
+  <h1 class="sr-only">Live Report Pemilihan Ketua OSIS Kelas XII</h1>
+
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-group">
+        <img src="logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
+        <img src="logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
+        <img src="logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
+      </div>
+      <div>
+        <div class="brand-title">OSIS SMK NEGERI 2 MOJOKERTO</div>
+        <div class="brand-sub">Live Report Pemilihan Ketua OSIS · Kelas XII</div>
+      </div>
+    </div>
+    <div class="navbar-actions">
+      <a class="btn-report-header" href="index.html"><i class="ti ti-arrow-left" aria-hidden="true"></i> Kembali Voting</a>
+    </div>
+  </nav>
+
+  <main class="dash-body live-report-page">
+    <div class="live-report-heading">
+      <div class="report-context-row">
+        <div class="hero-eyebrow">PEMANTAUAN REAL-TIME</div>
+        <span class="report-scope"><i class="ti ti-school" aria-hidden="true"></i> KHUSUS KELAS XII</span>
+      </div>
+      <h2 class="section-hd">Live Report Pemilihan Kelas XII</h2>
+      <p class="report-description">Pantau partisipasi teman-teman kelas XII SMK Negeri 2 Mojokerto secara langsung.</p>
+      <div class="report-meta"><i class="ti ti-users" aria-hidden="true"></i> Data pemilih kelas XII <span>·</span> <i class="ti ti-refresh" aria-hidden="true"></i> Diperbarui otomatis</div>
+    </div>
+
+    <div class="kpi-grid" id="kpi-grid" aria-live="polite"></div>
+
+    <div class="table-control-row" style="display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+      <label for="filter-major" style="font-size:13px;font-weight:800;color:var(--dark);text-transform:uppercase;letter-spacing:.5px;">Jurusan/Rombel:</label>
+      <select id="filter-major" onchange="renderReport()" style="width:auto;padding:8px 36px 8px 16px;font-size:13px;border:2px solid var(--dark);border-radius:8px;box-shadow:2px 2px 0 var(--dark);cursor:pointer;">
+        <option value="">Semua Jurusan</option>
+        <option value="APHP 1">APHP 1</option>
+        <option value="APHP 2">APHP 2</option>
+        <option value="DKV 1">DKV 1</option>
+        <option value="DKV 2">DKV 2</option>
+        <option value="KULINER 1">KULINER 1</option>
+        <option value="KULINER 2">KULINER 2</option>
+        <option value="KULINER 3">KULINER 3</option>
+        <option value="LPS 1">LPS 1</option>
+        <option value="LPS 2">LPS 2</option>
+        <option value="RPL 1">RPL 1</option>
+        <option value="RPL 2">RPL 2</option>
+        <option value="RPL 3">RPL 3</option>
+      </select>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(this,'tc-voted')">Sudah Memilih</button>
+      <button class="tab-btn" onclick="switchTab(this,'tc-unvoted')">Belum Memilih</button>
+    </div>
+    <div id="tc-voted" class="tab-content active"><div class="table-wrap" id="voted-table"></div></div>
+    <div id="tc-unvoted" class="tab-content"><div class="table-wrap" id="unvoted-table"></div></div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="live-report.js" defer></script>
+</body>
+</html>

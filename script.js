@@ -18,36 +18,31 @@ try {
 let SISWA = {};
 let CANDIDATES = [];
 
-const ADMIN_PASS = "osismarganaduvanesto";
+const CANDIDATE_DETAILS = [
+  {
+    name: 'Natasya Sandyta & Galeh Said',
+    visi: 'Mewujudkan OSIS sebagai wadah yang inspiratif, peduli lingkungan, dan terbuka dalam mengembangkan potensi serta menjadi tempat bagi siswa untuk berprestasi dan berkarya.',
+    misi: 'Mengembangkan motivasi dan inspirasi siswa.<br>Meningkatkan kepedulian terhadap lingkungan.<br>Menyediakan ruang yang nyaman bagi siswa.<br>Membangun budaya saling mendukung, menghargai, dan berani berpendapat.',
+    proker: '<strong>PODCAST JEJAK SISWA</strong><br>Podcast bersama siswa berprestasi untuk memberikan motivasi dan inspirasi, sekaligus membahas curhatan siswa melalui menfess.<br><br><strong>MUSIK SAAT ISTIRAHAT</strong><br>Pemutaran musik atau podcast Jejak Siswa dua kali setiap minggu saat jam istirahat agar suasana sekolah lebih menyenangkan.<br><br><strong>ONE STUDENT ONE BOTTLE</strong><br>Gerakan membawa satu botol plastik bekas setiap minggu untuk dikumpulkan dan didaur ulang, sekaligus meningkatkan kepedulian terhadap lingkungan.'
+  },
+  {
+    name: 'Rona Qurrotu & Nila Asna',
+    visi: 'Mewujudkan SMKN 2 Mojokerto sebagai sekolah yang unggul dalam prestasi, serta menjadi tempat bagi siswa untuk berkembang menjadi pribadi yang percaya diri, mampu berkomunikasi dengan baik, kompeten, berkarakter, siap menghadapi dunia kerja, dan memberikan dampak positif bagi sekolah serta lingkungan sekitar.',
+    misi: 'Pengembangan Potensi & Prestasi: Mendorong siswa mengembangkan potensi, minat, dan bakat serta meningkatkan prestasi akademik maupun nonakademik.<br><br>Karakter & Kepemimpinan: Membentuk siswa yang disiplin, bertanggung jawab, kreatif, berakhlak mulia, mampu bekerja sama, dan memiliki jiwa kepemimpinan.<br><br>Aspirasi & Lingkungan Positif: Menampung aspirasi serta menciptakan lingkungan sekolah yang aktif, sehat, harmonis, dan positif.',
+    proker: '<strong>ASPIRASI SISWA</strong><br>Wadah aspirasi, apresiasi, dan ide melalui kotak aspirasi, formulir digital, serta media sosial OSIS.<br><br><strong>ONE SCHOOL, ONE CELEBRATION</strong><br>Kolaborasi dengan sekolah lain melalui kompetisi, kegiatan kreatif, sosial, dan edukatif.<br><br><strong>SPEAK UP SKANEDA</strong><br>Latihan public speaking, presentasi, diskusi, dan MC agar siswa lebih percaya diri.<br><br><strong>ONE STUDENT, ONE TALENT</strong><br>Program untuk menemukan dan mengembangkan bakat serta minat setiap siswa.'
+  },
+  {
+    name: 'Vizia Salsabilla & Wella Berlian',
+    visi: 'Mewujudkan organisasi OSIS sebagai organisasi yang dapat menampung segala aspirasi siswa, aktif, kreatif, inovatif, dan inspiratif.',
+    misi: 'Meningkatkan kedisiplinan dan rasa tanggung jawab siswa.<br>Menjadi teladan bagi seluruh siswa dalam sikap dan prestasi.<br>Meningkatkan kerja sama antara siswa, OSIS, dan guru.<br>Mewujudkan OSIS yang responsif dan bertanggung jawab dalam menjalankan program kerja.',
+    proker: '<strong>SKILL SWAP DAY</strong><br>Wadah bagi siswa untuk saling berbagi keterampilan seperti public speaking, editing, desain, memasak, olahraga, dan keterampilan lainnya.<br><br><strong>JAVANESE CULTURE</strong><br>Melanjutkan dan mengembangkan kegiatan Javanese Culture dengan bazar makanan tradisional yang melibatkan siswa.<br><br><strong>FRIDAY ARENA</strong><br>Permainan bola atau aktivitas olahraga saat istirahat kedua hari Jumat untuk menciptakan suasana aktif dan mempererat kebersamaan.'
+  }
+];
+
 const STORAGE_KEY = "osis_smkn2mjk_votes_v4";
 let selectedCandidateId = null;
 let voterRole = 'siswa'; 
 let currentVoter = null; 
-let realtimeChannel = null;
-
-function sortKelasKeys(keys) {
-  const grades = { 'X': 10, 'XI': 11, 'XII': 12 };
-  const majors = {
-    'APHP': 1,
-    'DKV': 2,
-    'KULINER': 3,
-    'PS': 4,
-    'RPL': 5
-  };
-  return keys.sort((a, b) => {
-    const partsA = a.split(' ');
-    const partsB = b.split(' ');
-    const gA = grades[partsA[0]] || 0;
-    const gB = grades[partsB[0]] || 0;
-    if (gA !== gB) return gA - gB;
-    const mA = majors[partsA[1]] || 99;
-    const mB = majors[partsB[1]] || 99;
-    if (mA !== mB) return mA - mB;
-    const nA = parseInt(partsA[2]) || 0;
-    const nB = parseInt(partsB[2]) || 0;
-    return nA - nB;
-  });
-}
 
 function getLocalVotes() {
   try {
@@ -110,15 +105,28 @@ async function initApp() {
       
       if (candidatesError) throw candidatesError;
       if (candidatesData && candidatesData.length > 0) {
-        CANDIDATES = candidatesData;
-        console.log("Data kandidat berhasil dimuat dari Supabase.");
+        CANDIDATES = candidatesData.map((candidate, index) => ({
+          ...candidate,
+          ...CANDIDATE_DETAILS[index]
+        }));
+        console.log("Data paslon berhasil dimuat dari Supabase.");
       }
 
-      console.log("Data master siswa dan kandidat berhasil disinkronkan dari cloud.");
+      console.log("Data master siswa dan paslon berhasil disinkronkan dari cloud.");
 
     } catch (error) {
       console.error("Gagal memuat data dari Supabase, mengaktifkan mode aman lokal:", error);
     }
+  }
+
+  if (!CANDIDATES.length) {
+    CANDIDATES = CANDIDATE_DETAILS.map((details, index) => ({
+      ...details,
+      id: String.fromCharCode(65 + index),
+      num: `n${String.fromCharCode(65 + index)}`,
+      pb: `pb${String.fromCharCode(65 + index)}`,
+      photo: `candidate_${String.fromCharCode(97 + index)}.png`
+    }));
   }
 
   if (typeof renderCandidates === 'function') {
@@ -132,13 +140,13 @@ function renderCandidates() {
   const container = document.getElementById('cand-list');
   if (!container) return;
   
-  container.innerHTML = CANDIDATES.map(c => `
+  container.innerHTML = CANDIDATES.map((c, index) => `
     <div class="cand-card" id="card-${c.id}" onclick="selectCandidate('${c.id}')">
       <div class="cand-img-wrap">
-        <img src="${c.photo}" alt="Kandidat ${c.id}" onerror="this.src='https://placehold.co/140x160?text=Kandidat+${c.id}'">
+        <img src="${c.photo}" alt="Paslon ${index + 1}" onerror="this.src='https://placehold.co/140x160?text=Paslon+${index + 1}'">
       </div>
       <div class="cand-body">
-        <div class="cand-num-badge ${c.num}">${c.id}</div>
+        <div class="cand-num-badge ${c.num}">${index + 1}</div>
         <div class="cname">${c.name}</div>
         <div class="cvisi-title">Visi:</div>
         <div class="cvisi">${c.visi}</div>
@@ -146,6 +154,8 @@ function renderCandidates() {
         <ol class="cmisi" style="list-style-position: inside;">
           ${c.misi.split('<br>').map(m => `<li>${m.replace(/^\d+\.\s*/, '')}</li>`).join('')}
         </ol>
+        <div class="cproker-title">Program Kerja:</div>
+        <div class="cproker">${c.proker || '-'}</div>
       </div>
       <div class="radio-box-container">
         <div class="radio-box"></div>
@@ -280,7 +290,7 @@ async function submitVote() {
     return;
   }
   if (!selectedCandidateId) {
-    showErr('vote-err', 'Silakan pilih salah satu kandidat pilihan Anda.');
+    showErr('vote-err', 'Silakan pilih salah satu paslon pilihan Anda.');
     return;
   }
 
@@ -351,7 +361,7 @@ async function submitVote() {
       <div class="r-row">
         <span class="r-key">Pilihan</span>
         <span class="r-val">
-          <span class="pbadge ${candidate.pb}">Kandidat ${candidate.id}</span>
+          <span class="pbadge ${candidate.pb}">Paslon ${CANDIDATES.indexOf(candidate) + 1}</span>
         </span>
       </div>
       <div class="r-row"><span class="r-key">Waktu</span><span class="r-val" style="font-size: 11px;">${now.toLocaleString('id-ID')}</span></div>
@@ -409,373 +419,4 @@ function startVoting() {
       }
     }, 100);
   }
-}
-
-function adminLogin() {
-  const pass = document.getElementById('admin-pass').value;
-  if (pass !== ADMIN_PASS) {
-    showErr('admin-err', 'Password admin salah.');
-    return;
-  }
-  renderAdmin();
-  showPage('admin');
-  aktifkanRealtimeAdmin();
-}
-
-function adminLogout() {
-  document.getElementById('admin-pass').value = '';
-  showPage('vote');
-  if (realtimeChannel) {
-    supabaseClient.removeChannel(realtimeChannel);
-    realtimeChannel = null;
-    console.log("Radar Realtime MARVOTE Dimatikan.");
-  }
-}
-
-async function renderAdmin() {
-  const filterGrade = document.getElementById('filter-grade')?.value || '';
-  const filterMajor = document.getElementById('filter-major')?.value || '';
-
-  let votes = [];
-
-  if (supabaseClient) {
-    try {
-      const { data, error } = await supabaseClient
-        .from('votes')
-        .select('*')
-        .order('timestamp', { ascending: false });
-      if (error) throw error;
-      votes = data;
-    } catch (e) {
-      console.warn("Supabase select votes failed. Falling back to local votes.", e);
-      votes = getLocalVotes();
-    }
-  } else {
-    votes = getLocalVotes();
-  }
-
-  const totalVotesCast = votes.length;
-  
-  const totalMasterDaftar = Object.values(SISWA).reduce((sum, arr) => sum + arr.length, 0);
-  
-  const pctTurnout = totalMasterDaftar ? Math.round((totalVotesCast / totalMasterDaftar) * 100) : 0;
-  const belumVotedCount = totalMasterDaftar - totalVotesCast;
-
-  const kpi = document.getElementById('kpi-grid');
-  if (kpi) {
-    kpi.innerHTML = `
-      <div class="kpi-card">
-        <div class="kpi-num">${totalVotesCast}</div>
-        <div class="kpi-lbl">Suara Masuk</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-num">${belumVotedCount}</div>
-        <div class="kpi-lbl">Belum Memilih</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-num">${pctTurnout}%</div>
-        <div class="kpi-lbl">Tingkat Partisipasi</div>
-      </div>
-    `;
-  }
-
-  const counts = {};
-  CANDIDATES.forEach(c => counts[c.id] = 0);
-  votes.forEach(v => {
-    if (counts[v.candidate_id] !== undefined) counts[v.candidate_id]++;
-  });
-
-  const chart = document.getElementById('bar-chart');
-  if (chart) {
-    chart.innerHTML = CANDIDATES.map(c => {
-      const p = totalVotesCast ? Math.round((counts[c.id] / totalVotesCast) * 100) : 0;
-      return `
-        <div class="bar-row">
-          <div class="bar-lbl">
-            <span class="pbadge ${c.pb}">Kandidat ${c.id}</span>
-            <span style="font-size:11px; color:#555; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-              ${c.name.split(' ')[0]}
-            </span>
-          </div>
-          <div class="bar-track">
-            <div class="bar-fill" style="width:${p}%; background:${c.color};"></div>
-          </div>
-          <div style="width:36px; text-align:right; font-weight:700;">${counts[c.id]}</div>
-          <div class="bar-pct">${p}%</div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  const filteredVotes = votes.filter(v => {
-    const kelas = v.voter_identifier.split('|')[0].trim();
-    const parts = kelas.split(' ');
-    const grade = parts[0];
-    const major = parts.slice(1).join(' ');
-    const matchesGrade = !filterGrade || grade === filterGrade;
-    const matchesMajor = !filterMajor || major === filterMajor;
-    return matchesGrade && matchesMajor;
-  });
-
-  const allVotersTbody = filteredVotes.length ? filteredVotes.map((v, i) => {
-    const formattedTime = new Date(v.timestamp).toLocaleString('id-ID');
-    return `
-      <tr>
-        <td style="color:#888">${i + 1}</td>
-        <td><strong>${v.voter_name}</strong></td>
-        <td><span style="text-transform: uppercase; font-size:10px; font-weight:700; background:#eee; padding:3px 8px; border-radius:4px;">${v.voter_role}</span></td>
-        <td><code>${v.voter_identifier}</code></td>
-        <td><span class="pbadge pb${v.candidate_id}">Kand.${v.candidate_id}</span></td>
-        <td style="font-size:11px; color:#666">${formattedTime}</td>
-      </tr>
-    `;
-  }).join('') : `<tr><td colspan="6" class="empty-state">Tidak ada data pemilih yang cocok dengan filter.</td></tr>`;
-
-  document.getElementById('voter-table').innerHTML = `
-    <table class="vtable">
-      <thead>
-        <tr>
-          <th style="width:40px;">#</th>
-          <th>Nama</th>
-          <th>Peran</th>
-          <th>Pengenal / Kelas</th>
-          <th>Pilihan</th>
-          <th>Waktu Voting</th>
-        </tr>
-      </thead>
-      <tbody>${allVotersTbody}</tbody>
-    </table>
-  `;
-
-  const kelasMap = {};
-  votes.forEach(v => {
-    if (v.voter_role === 'siswa') {
-      const match = v.voter_identifier.split('|')[0].trim();
-      if (!kelasMap[match]) kelasMap[match] = [];
-      kelasMap[match].push(v);
-    }
-  });
-
-  const sortedKelasKeys = sortKelasKeys(Object.keys(SISWA)).filter(k => {
-    const parts = k.split(' ');
-    const grade = parts[0];
-    const major = parts.slice(1).join(' ');
-    const matchesGrade = !filterGrade || grade === filterGrade;
-    const matchesMajor = !filterMajor || major === filterMajor;
-    return matchesGrade && matchesMajor;
-  });
-
-  const kelasTableContent = sortedKelasKeys.length ? sortedKelasKeys.map(k => {
-    const sudah = kelasMap[k] || [];
-    const total_k = SISWA[k].length;
-    const rows = sudah.map((v, i) => `
-      <tr>
-        <td style="color:#888">${i + 1}</td>
-        <td><strong>${v.voter_name}</strong></td>
-        <td>Absen ${v.voter_identifier.split('Absen')[1]?.trim() || ''}</td>
-        <td><span class="pbadge pb${v.candidate_id}">Kand.${v.candidate_id}</span></td>
-      </tr>
-    `).join('');
-
-    return `
-      <div class="kelas-hd">Kelas ${k} <span style="font-weight:400; font-size:11px; color:var(--grey)">(${sudah.length} dari ${total_k} siswa sudah memilih)</span></div>
-      <div class="table-wrap">
-        <table class="vtable">
-          <thead>
-            <tr>
-              <th style="width:40px;">#</th>
-              <th>Nama</th>
-              <th>No. Absen</th>
-              <th>Pilihan</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows || `<tr><td colspan="4" class="empty-state">Belum ada pemilih dari kelas ini.</td></tr>`}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }).join('') : `<div class="empty-state">Tidak ada data kelas yang cocok dengan filter.</div>`;
-
-  document.getElementById('kelas-table').innerHTML = kelasTableContent;
-
-  const votedIdentifierSet = new Set(votes.map(v => v.voter_identifier));
-  const belumList = [];
-
-  const filteredBelumKelasKeys = sortKelasKeys(Object.keys(SISWA)).filter(k => {
-    const parts = k.split(' ');
-    const grade = parts[0];
-    const major = parts.slice(1).join(' ');
-    const matchesGrade = !filterGrade || grade === filterGrade;
-    const matchesMajor = !filterMajor || major === filterMajor;
-    return matchesGrade && matchesMajor;
-  });
-
-  filteredBelumKelasKeys.forEach(kelas => {
-    const list = SISWA[kelas];
-    list.forEach(s => {
-      const id = `${kelas} | Absen ${s.absen}`;
-      if (!votedIdentifierSet.has(id)) {
-        belumList.push({ name: s.nama, role: 'siswa', identifier: id });
-      }
-    });
-  });
-
-  const belumRows = belumList.length ? belumList.map((b, i) => `
-    <tr>
-      <td style="color:#888">${i + 1}</td>
-      <td><strong>${b.name}</strong></td>
-      <td><span style="text-transform: uppercase; font-size:10px; font-weight:700; background:#eee; padding:3px 8px; border-radius:4px;">${b.role}</span></td>
-      <td><code>${b.identifier}</code></td>
-    </tr>
-  `).join('') : `<tr><td colspan="4" class="empty-state">🎉 Hebat! Semua pemilih sudah menyalurkan suaranya!</td></tr>`;
-
-  document.getElementById('belum-table').innerHTML = `
-    <table class="vtable">
-      <thead>
-        <tr>
-          <th style="width:40px;">#</th>
-          <th>Nama Lengkap</th>
-          <th>Peran</th>
-          <th>Pengenal Identitas</th>
-        </tr>
-      </thead>
-      <tbody>${belumRows}</tbody>
-    </table>
-  `;
-}
-
-function switchTab(btn, id) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-  btn.classList.add('active');
-  const content = document.getElementById(id);
-  if (content) content.classList.add('active');
-}
-
-async function seedSupabase() {
-  if (!supabaseClient) {
-    alert("Supabase client belum terinisialisasi. Periksa koneksi internet atau script CDN.");
-    return;
-  }
-
-  const btn = document.getElementById('btn-seed');
-  const originalText = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = "<i class='ti ti-loader' style='animation: spin 1s linear infinite'></i> Mengupload data...";
-
-  try {
-    const studentRows = [];
-    Object.entries(SISWA).forEach(([kelas, list]) => {
-      list.forEach(s => {
-        studentRows.push({ kelas, absen: s.absen, nama: s.nama });
-      });
-    });
-
-    for (let i = 0; i < studentRows.length; i += 50) {
-      const chunk = studentRows.slice(i, i + 50);
-      const { error } = await supabaseClient.from('students').insert(chunk);
-      if (error) {
-        if (!error.message.includes("duplicate key")) {
-          throw error;
-        }
-      }
-    }
-
-    alert(`Seeding Selesai!\nMaster Data: ${studentRows.length} siswa (36 kelas) berhasil disinkronisasi ke tabel Supabase.`);
-    renderAdmin();
-  } catch (e) {
-    console.error(e);
-    alert(`Seeding Gagal!\nPastikan Anda sudah membuat tabel 'students' di SQL editor Supabase.\n\nError: ${e.message}`);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalText;
-  }
-}
-
-async function clearData() {
-  if (supabaseClient) {
-    try {
-      const { error } = await supabaseClient
-        .from('votes')
-        .delete()
-        .neq('id', 0); 
-      if (error) throw error;
-      alert("Database Supabase berhasil direset.");
-    } catch (e) {
-      console.warn("Supabase clear failed. Clearing local storage fallback.", e);
-      clearLocalVotes();
-      alert("Data lokal direset.");
-    }
-  } else {
-    clearLocalVotes();
-    alert("Data lokal direset.");
-  }
-  renderAdmin();
-}
-
-async function exportCSV() {
-  let votes = [];
-  if (supabaseClient) {
-    try {
-      const { data, error } = await supabaseClient
-        .from('votes')
-        .select('*')
-        .order('timestamp', { ascending: true });
-      if (error) throw error;
-      votes = data;
-    } catch (e) {
-      console.warn("Supabase export query failed, exporting local logs.", e);
-      votes = getLocalVotes();
-    }
-  } else {
-    votes = getLocalVotes();
-  }
-
-  if (!votes.length) {
-    alert("Tidak ada data voting untuk diexport.");
-    return;
-  }
-
-  const headers = ["No", "Nama Pemilih", "Peran", "Identitas/Kelas", "ID Pilihan", "Nama Kandidat", "Waktu Voting"];
-  const rows = votes.map((v, i) => [
-    i + 1,
-    v.voter_name,
-    v.voter_role,
-    v.voter_identifier,
-    v.candidate_id,
-    v.candidate_name,
-    new Date(v.timestamp).toLocaleString('id-ID')
-  ]);
-
-  const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `hasil_voting_osis_smkn2mjk_${new Date().toLocaleDateString('id-ID')}.csv`;
-  a.click();
-}
-
-function aktifkanRealtimeAdmin() {
-  if (!supabaseClient) return;
-  if (realtimeChannel) return;
-
-  console.log("Radar Realtime MARVOTE Aktif! Memantau suara masuk...");
-
-  realtimeChannel = supabaseClient
-    .channel('pantau-suara-osis')
-    .on(
-      'postgres_changes', 
-      { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'votes'   
-      }, 
-      (payload) => {
-        console.log('Ada suara baru terdeteksi!', payload.new);
-        renderAdmin(); 
-      }
-    )
-    .subscribe();
 }
