@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MARVOTE Ketua OSIS SMKN 2 Mojokerto</title>
   <meta name="description" content="Platform Pemilihan Ketua OSIS SMKN 2 Mojokerto secara online, aman, mandiri, dan transparan.">
+  
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-  <link rel="stylesheet" href="style.css">
+  
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/vote.css">
+  <link rel="stylesheet" href="assets/css/receipt.css">
+  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="grid-bg">
@@ -17,9 +23,9 @@
     <nav class="navbar" id="vote-navbar">
       <div class="navbar-brand">
         <div class="logo-group">
-          <img src="/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
-          <img src="/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
-          <img src="/logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
+          <img src="assets/images/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
+          <img src="assets/images/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
+          <img src="assets/images/logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
         </div>
         <div>
           <div class="brand-title">OSIS SMK NEGERI 2 MOJOKERTO</div>
@@ -56,7 +62,7 @@
             <input type="text" id="input-kode-siswa" placeholder="Contoh: XIIRPL228 atau XIIPS205" oninput="onStudentCodeChange()" maxlength="12">
           </div>
           <small style="color: #666; margin-top: 5px; display: block;">
-            *Format: KELAS + JURUSAN + 2 DIGIT ABSEN (Contoh absen 5 ditulis 05)
+            *Format: KELAS + JURUSAN + ROMBEL + 2 DIGIT ABSEN (Contoh absen 5 ditulis 05)
           </small>
         </div>
 
@@ -90,9 +96,9 @@
     <nav class="navbar" id="success-navbar">
       <div class="navbar-brand">
         <div class="logo-group">
-          <img src="/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
-          <img src="/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
-          <img src="/logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
+          <img src="assets/images/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
+          <img src="assets/images/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
+          <img src="assets/images/logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
         </div>
         <div><div class="brand-title">OSIS SMKN 2 Mojokerto</div><div class="brand-sub">Pemilihan Ketua OSIS</div></div>
       </div>
@@ -109,6 +115,8 @@
     <button class="btn-back" onclick="showPage('vote');resetForm()">Kembali ke Beranda</button>
   </div>
 
-  <script src="script.js" defer></script>
+  <script src="assets/js/config.js" defer></script>
+  <script src="assets/js/candidates.js" defer></script>
+  <script src="assets/js/vote.js" defer></script>
 </body>
 </html>

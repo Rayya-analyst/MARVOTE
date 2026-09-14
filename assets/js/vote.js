@@ -1,66 +1,9 @@
-const DB_PROVIDER = 'supabase'; 
-const SUPABASE_URL = "https://lqjlzlzbpbbtrdnzbguv.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxamx6bHpicGJidHJkbnpiZ3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NzM3MDIsImV4cCI6MjA5NTQ0OTcwMn0.p82nSPh760G43sfNLPQHDsxP0F-F4lXIvWGUWAzNNa4";
 
-let supabaseClient = null;
-
-try {
-  if (typeof supabase !== 'undefined' && SUPABASE_URL && SUPABASE_ANON_KEY) {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log("Supabase Client initialized successfully.");
-  } else {
-    console.warn("Supabase library not loaded or credentials missing. Running in Mock fallback mode.");
-  }
-} catch (e) {
-  console.error("Error initializing Supabase client:", e);
-}
-
-let SISWA = {};
-let CANDIDATES = [];
-
-const CANDIDATE_DETAILS = [
-  {
-    name: 'Natasya Sandyta & Galeh Said',
-    visi: 'Mewujudkan OSIS sebagai wadah yang inspiratif, peduli lingkungan, dan terbuka dalam mengembangkan potensi serta menjadi tempat bagi siswa untuk berprestasi dan berkarya.',
-    misi: 'Mengembangkan motivasi dan inspirasi siswa.<br>Meningkatkan kepedulian terhadap lingkungan.<br>Menyediakan ruang yang nyaman bagi siswa.<br>Membangun budaya saling mendukung, menghargai, dan berani berpendapat.',
-    proker: '<strong>PODCAST JEJAK SISWA</strong><br>Podcast bersama siswa berprestasi untuk memberikan motivasi dan inspirasi, sekaligus membahas curhatan siswa melalui menfess.<br><br><strong>MUSIK SAAT ISTIRAHAT</strong><br>Pemutaran musik atau podcast Jejak Siswa dua kali setiap minggu saat jam istirahat agar suasana sekolah lebih menyenangkan.<br><br><strong>ONE STUDENT ONE BOTTLE</strong><br>Gerakan membawa satu botol plastik bekas setiap minggu untuk dikumpulkan dan didaur ulang, sekaligus meningkatkan kepedulian terhadap lingkungan.'
-  },
-  {
-    name: 'Rona Qurrotu & Nila Asna',
-    visi: 'Mewujudkan SMKN 2 Mojokerto sebagai sekolah yang unggul dalam prestasi, serta menjadi tempat bagi siswa untuk berkembang menjadi pribadi yang percaya diri, mampu berkomunikasi dengan baik, kompeten, berkarakter, siap menghadapi dunia kerja, dan memberikan dampak positif bagi sekolah serta lingkungan sekitar.',
-    misi: 'Pengembangan Potensi & Prestasi: Mendorong siswa mengembangkan potensi, minat, dan bakat serta meningkatkan prestasi akademik maupun nonakademik.<br><br>Karakter & Kepemimpinan: Membentuk siswa yang disiplin, bertanggung jawab, kreatif, berakhlak mulia, mampu bekerja sama, dan memiliki jiwa kepemimpinan.<br><br>Aspirasi & Lingkungan Positif: Menampung aspirasi serta menciptakan lingkungan sekolah yang aktif, sehat, harmonis, dan positif.',
-    proker: '<strong>ASPIRASI SISWA</strong><br>Wadah aspirasi, apresiasi, dan ide melalui kotak aspirasi, formulir digital, serta media sosial OSIS.<br><br><strong>ONE SCHOOL, ONE CELEBRATION</strong><br>Kolaborasi dengan sekolah lain melalui kompetisi, kegiatan kreatif, sosial, dan edukatif.<br><br><strong>SPEAK UP SKANEDA</strong><br>Latihan public speaking, presentasi, diskusi, dan MC agar siswa lebih percaya diri.<br><br><strong>ONE STUDENT, ONE TALENT</strong><br>Program untuk menemukan dan mengembangkan bakat serta minat setiap siswa.'
-  },
-  {
-    name: 'Vizia Salsabilla & Wella Berlian',
-    visi: 'Mewujudkan organisasi OSIS sebagai organisasi yang dapat menampung segala aspirasi siswa, aktif, kreatif, inovatif, dan inspiratif.',
-    misi: 'Meningkatkan kedisiplinan dan rasa tanggung jawab siswa.<br>Menjadi teladan bagi seluruh siswa dalam sikap dan prestasi.<br>Meningkatkan kerja sama antara siswa, OSIS, dan guru.<br>Mewujudkan OSIS yang responsif dan bertanggung jawab dalam menjalankan program kerja.',
-    proker: '<strong>SKILL SWAP DAY</strong><br>Wadah bagi siswa untuk saling berbagi keterampilan seperti public speaking, editing, desain, memasak, olahraga, dan keterampilan lainnya.<br><br><strong>JAVANESE CULTURE</strong><br>Melanjutkan dan mengembangkan kegiatan Javanese Culture dengan bazar makanan tradisional yang melibatkan siswa.<br><br><strong>FRIDAY ARENA</strong><br>Permainan bola atau aktivitas olahraga saat istirahat kedua hari Jumat untuk menciptakan suasana aktif dan mempererat kebersamaan.'
-  }
-];
-
-const STORAGE_KEY = "osis_smkn2mjk_votes_v4";
-let selectedCandidateId = null;
-let voterRole = 'siswa'; 
-let currentVoter = null; 
-
-function getLocalVotes() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch (e) {
-    return [];
-  }
-}
-function saveLocalVotes(votes) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(votes));
-}
-function clearLocalVotes() {
-  localStorage.removeItem(STORAGE_KEY);
-}
 
 async function initApp() {
+  
   const txt = "PEMILIHAN KETUA OSIS · SMKN 2 MOJOKERTO · SUARAMU MENENTUKAN · ";
-  const mq = document.getElementById('mq');
+  const mq  = document.getElementById('mq');
   if (mq) {
     mq.innerHTML = "";
     for (let i = 0; i < 6; i++) {
@@ -81,19 +24,15 @@ async function initApp() {
       
       if (siswaError) throw siswaError;
 
-      SISWA = {}; 
+      SISWA = {};
       if (siswaData) {
         siswaData.forEach(item => {
           if (!SISWA[item.kelas]) {
             SISWA[item.kelas] = [];
           }
-          
           const isDuplicate = SISWA[item.kelas].some(s => s.absen === item.absen);
           if (!isDuplicate) {
-            SISWA[item.kelas].push({
-              absen: item.absen,
-              nama: item.nama
-            });
+            SISWA[item.kelas].push({ absen: item.absen, nama: item.nama });
           }
         });
       }
@@ -122,16 +61,14 @@ async function initApp() {
   if (!CANDIDATES.length) {
     CANDIDATES = CANDIDATE_DETAILS.map((details, index) => ({
       ...details,
-      id: String.fromCharCode(65 + index),
-      num: `n${String.fromCharCode(65 + index)}`,
-      pb: `pb${String.fromCharCode(65 + index)}`,
-      photo: `candidate_${String.fromCharCode(97 + index)}.png`
+      id:    String.fromCharCode(65 + index),
+      num:   `n${String.fromCharCode(65 + index)}`,
+      pb:    `pb${String.fromCharCode(65 + index)}`,
+      photo: `assets/images/candidate_${String.fromCharCode(97 + index)}.png`
     }));
   }
 
-  if (typeof renderCandidates === 'function') {
-    renderCandidates();
-  }
+  renderCandidates();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
@@ -171,8 +108,8 @@ function selectCandidate(id) {
 }
 
 function setRole(role) {
-  voterRole = 'siswa';
-  currentVoter = null;
+  voterRole           = 'siswa';
+  currentVoter        = null;
   selectedCandidateId = null;
   document.getElementById('name-reveal').classList.remove('show');
   document.querySelectorAll('.cand-card').forEach(el => el.classList.remove('selected'));
@@ -194,10 +131,10 @@ function resetSiswaForm() {
 }
 
 async function onStudentCodeChange() {
-  const tokenEl = document.getElementById('input-kode-siswa');
-  const token = tokenEl ? tokenEl.value.trim().toUpperCase() : '';
-  const reveal = document.getElementById('name-reveal');
-  const nameDisplay = document.getElementById('status-title');
+  const tokenEl      = document.getElementById('input-kode-siswa');
+  const token        = tokenEl ? tokenEl.value.trim().toUpperCase() : '';
+  const reveal       = document.getElementById('name-reveal');
+  const nameDisplay  = document.getElementById('status-title');
   const kelasDisplay = document.getElementById('status-desc');
   const successMessage = document.getElementById('success-message');
 
@@ -210,16 +147,16 @@ async function onStudentCodeChange() {
     return;
   }
 
-  nameDisplay.textContent = "Memvalidasi kode token...";
+  nameDisplay.textContent  = "Memvalidasi kode token...";
   kelasDisplay.textContent = "";
   successMessage.style.display = 'none';
   reveal.classList.add('show');
 
   const tokenPattern = /^(X|XI|XII)(APHP|DKV|KULINER|PS|PS|RPL)([1-3])(\d{2})$/;
-  const match = token.match(tokenPattern);
+  const match        = token.match(tokenPattern);
 
   if (!match) {
-    nameDisplay.textContent = "Format Token Salah";
+    nameDisplay.textContent  = "Format Token Salah";
     kelasDisplay.textContent = "Gunakan format: TINGKAT + JURUSAN + ROMBEL + 2 DIGIT ABSEN. Contoh: XRPL301";
     currentVoter = null;
     document.querySelector('.cand-section')?.classList.remove('show');
@@ -229,8 +166,8 @@ async function onStudentCodeChange() {
 
   const tingkat = match[1];
   const jurusan = match[2];
-  const rombel = match[3];
-  const absen = parseInt(match[4], 10);
+  const rombel  = match[3];
+  const absen   = parseInt(match[4], 10);
 
   const namaKelasTarget = `${tingkat} ${jurusan} ${rombel}`;
 
@@ -258,20 +195,20 @@ async function onStudentCodeChange() {
 
   if (namaSiswa) {
     currentVoter = {
-      name: namaSiswa,
-      role: 'siswa',
+      name:       namaSiswa,
+      role:       'siswa',
       identifier: `${namaKelasTarget} | Absen ${absen}`,
-      metadata: { kelas: namaKelasTarget, absen: absen }
+      metadata:   { kelas: namaKelasTarget, absen: absen }
     };
 
-    nameDisplay.textContent = namaSiswa;
+    nameDisplay.textContent  = namaSiswa;
     kelasDisplay.textContent = `Siswa • Kelas ${namaKelasTarget} • No. Absen ${absen}`;
     successMessage.style.display = 'block';
 
     document.querySelector('.cand-section')?.classList.add('show');
     document.querySelector('.submit-wrap')?.classList.add('show');
   } else {
-    nameDisplay.textContent = "Data Siswa Tidak Ditemukan";
+    nameDisplay.textContent  = "Data Siswa Tidak Ditemukan";
     kelasDisplay.textContent = `Tidak ada siswa di kelas ${namaKelasTarget} dengan nomor absen ${absen}.`;
     successMessage.style.display = 'none';
     currentVoter = null;
@@ -294,24 +231,24 @@ async function submitVote() {
     return;
   }
 
-  const btnSubmit = document.getElementById('btn-submit-vote');
+  const btnSubmit  = document.getElementById('btn-submit-vote');
   const originalText = btnSubmit.innerHTML;
   btnSubmit.disabled = true;
   btnSubmit.innerHTML = "<i class='ti ti-loader' style='animation: spin 1s linear infinite'></i> Memproses suara...";
 
   const candidate = CANDIDATES.find(c => c.id === selectedCandidateId);
-  const now = new Date();
+  const now       = new Date();
   
   const entry = {
-    voter_name: currentVoter.name,
-    voter_role: currentVoter.role,
+    voter_name:       currentVoter.name,
+    voter_role:       currentVoter.role,
     voter_identifier: currentVoter.identifier,
-    candidate_id: candidate.id,
-    candidate_name: candidate.name,
-    timestamp: now.toISOString()
+    candidate_id:     candidate.id,
+    candidate_name:   candidate.name,
+    timestamp:        now.toISOString()
   };
 
-  let success = false;
+  let success      = false;
   let errorMessage = "";
 
   if (supabaseClient) {
@@ -396,7 +333,7 @@ function resetForm() {
   setRole('siswa');
   resetSiswaForm();
   
-  const pageVote = document.getElementById('page-vote');
+  const pageVote    = document.getElementById('page-vote');
   const mainContent = document.querySelector('.vote-main-content');
   if (pageVote && mainContent) {
     mainContent.classList.remove('active');
@@ -405,7 +342,7 @@ function resetForm() {
 }
 
 function startVoting() {
-  const pageVote = document.getElementById('page-vote');
+  const pageVote    = document.getElementById('page-vote');
   const mainContent = document.querySelector('.vote-main-content');
   
   if (pageVote && mainContent) {

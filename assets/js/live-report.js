@@ -1,26 +1,7 @@
-const SUPABASE_URL = "https://lqjlzlzbpbbtrdnzbguv.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxxamx6bHpicGJidHJkbnpiZ3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NzM3MDIsImV4cCI6MjA5NTQ0OTcwMn0.p82nSPh760G43sfNLPQHDsxP0F-F4lXIvWGUWAzNNa4";
-const STORAGE_KEY = "osis_smkn2mjk_votes_v4";
 
-let supabaseClient = null;
-let students = {};
+
+let students       = {};
 let realtimeChannel = null;
-
-try {
-  if (typeof supabase !== 'undefined') {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-} catch (error) {
-  console.error('Supabase client gagal dibuat:', error);
-}
-
-function getLocalVotes() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch (error) {
-    return [];
-  }
-}
 
 function getClass(identifier) {
   return (identifier || '').split('|')[0].trim();
@@ -33,7 +14,7 @@ function isClassXII(kelas) {
 function matchesMajor(kelas, major) {
   if (!major) return true;
   const selectedMajor = major.replace(/^LPS/, 'PS');
-  const classMajor = kelas.split(' ').slice(1).join(' ').replace(/^LPS/, 'PS');
+  const classMajor    = kelas.split(' ').slice(1).join(' ').replace(/^LPS/, 'PS');
   return classMajor === selectedMajor;
 }
 
@@ -42,7 +23,7 @@ function getSortParts(kelas) {
   const major = parts[1] === 'LPS' ? 'PS' : parts[1];
   return {
     majorRank: { APHP: 1, DKV: 2, KULINER: 3, PS: 4, RPL: 5 }[major] || 99,
-    rombel: Number.parseInt(parts[2], 10) || 0
+    rombel:    Number.parseInt(parts[2], 10) || 0
   };
 }
 
@@ -52,9 +33,9 @@ function getAttendance(identifier) {
 }
 
 function compareStudents(first, second) {
-  const firstClass = getClass(first.identifier || first.kelas);
+  const firstClass  = getClass(first.identifier  || first.kelas);
   const secondClass = getClass(second.identifier || second.kelas);
-  const firstParts = getSortParts(firstClass);
+  const firstParts  = getSortParts(firstClass);
   const secondParts = getSortParts(secondClass);
 
   if (firstParts.majorRank !== secondParts.majorRank) {
@@ -132,18 +113,22 @@ function renderTable(targetId, rows, emptyMessage) {
 }
 
 async function renderReport() {
-  const major = document.getElementById('filter-major')?.value || '';
-  const votes = await getVotes();
-  const allStudents = Object.entries(students).flatMap(([kelas, list]) => list.map(student => ({ ...student, kelas })));
-  const eligibleStudents = allStudents.filter(student => matchesMajor(student.kelas, major));
-  const filteredVotes = votes.filter(v => matchesMajor(getClass(v.voter_identifier), major));
-  const votedIdentifiers = new Set(votes.map(v => v.voter_identifier));
+  const major       = document.getElementById('filter-major')?.value || '';
+  const votes       = await getVotes();
+  const allStudents = Object.entries(students).flatMap(([kelas, list]) =>
+    list.map(student => ({ ...student, kelas }))
+  );
+
+  const eligibleStudents       = allStudents.filter(student => matchesMajor(student.kelas, major));
+  const filteredVotes          = votes.filter(v => matchesMajor(getClass(v.voter_identifier), major));
+  const votedIdentifiers       = new Set(votes.map(v => v.voter_identifier));
   const filteredVotedIdentifiers = new Set(filteredVotes.map(v => v.voter_identifier));
-  const totalStudents = allStudents.length;
-  const totalVotes = votes.length;
+
+  const totalStudents  = allStudents.length;
+  const totalVotes     = votes.length;
   const selectedStudents = major ? eligibleStudents.length : totalStudents;
-  const selectedVotes = major ? filteredVotedIdentifiers.size : votedIdentifiers.size;
-  const participation = selectedStudents ? Math.round((selectedVotes / selectedStudents) * 100) : 0;
+  const selectedVotes    = major ? filteredVotedIdentifiers.size : votedIdentifiers.size;
+  const participation    = selectedStudents ? Math.round((selectedVotes / selectedStudents) * 100) : 0;
 
   document.getElementById('kpi-grid').innerHTML = `
     <div class="kpi-card"><div class="kpi-num">${selectedVotes}</div><div class="kpi-lbl">Suara Masuk</div></div>
@@ -152,27 +137,27 @@ async function renderReport() {
   `;
 
   const votedRows = filteredVotes.map(v => ({
-    name: v.voter_name,
-    role: v.voter_role,
+    name:       v.voter_name,
+    role:       v.voter_role,
     identifier: v.voter_identifier,
-    time: new Date(v.timestamp).toLocaleString('id-ID')
+    time:       new Date(v.timestamp).toLocaleString('id-ID')
   })).sort(compareStudents);
   renderTable('voted-table', votedRows, 'Belum ada data pemilih yang cocok dengan filter.');
 
   const unvoted = eligibleStudents
     .filter(student => !votedIdentifiers.has(`${student.kelas} | Absen ${student.absen}`))
     .map(student => ({
-      name: student.nama,
-      role: 'siswa',
+      name:       student.nama,
+      role:       'siswa',
       identifier: `${student.kelas} | Absen ${student.absen}`,
-      time: '-'
+      time:       '-'
     })).sort(compareStudents);
   renderTable('unvoted-table', unvoted, 'Semua siswa pada filter ini sudah memilih.');
 }
 
 function switchTab(button, id) {
-  document.querySelectorAll('.tab-btn').forEach(element => element.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(element => element.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   button.classList.add('active');
   document.getElementById(id)?.classList.add('active');
 }
