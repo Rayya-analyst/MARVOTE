@@ -96,11 +96,12 @@ function renderCandidates() {
   container.innerHTML = CANDIDATES.map((c, index) => {
     const photoUrl = resolveCandidatePhoto(c.photo, index);
     const char = String.fromCharCode(97 + index);
+    const fallbackAsset = `assets/images/candidate_${char}.png`;
     const fallbackRoot = `candidate_${char}.png`;
     return `
     <div class="cand-card" id="card-${c.id}" onclick="selectCandidate('${c.id}')">
       <div class="cand-img-wrap">
-        <img src="${photoUrl}" alt="Paslon ${index + 1}" onerror="if(!this.dataset.triedBackup){this.dataset.triedBackup='1';this.src='${fallbackRoot}';}else{this.src='https://placehold.co/140x160?text=Paslon+${index + 1}';}">
+        <img src="${photoUrl}" alt="Paslon ${index + 1}" onerror="if(!this.dataset.triedAsset){this.dataset.triedAsset='1';this.src='${fallbackAsset}';}else if(!this.dataset.triedRoot){this.dataset.triedRoot='1';this.src='${fallbackRoot}';}else{this.src='https://placehold.co/140x160?text=Paslon+${index + 1}';}">
       </div>
       <div class="cand-body">
         <div class="cand-num-badge ${c.num}">${index + 1}</div>
