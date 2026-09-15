@@ -344,19 +344,6 @@
   .btn-admin-header i {
     font-size: 15px;
   }
-
-  .cand-card {
-    flex-direction: column;
-  }
-  .cand-img-wrap {
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    border-bottom: 3px solid var(--dark);
-  }
-  .cand-card.selected .cand-img-wrap {
-    border-bottom-color: #d63384;
-  }
 }
 
 @media (min-width: 768px) {

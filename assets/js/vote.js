@@ -98,44 +98,156 @@ function renderCandidates() {
     const char = String.fromCharCode(97 + index);
     const fallbackAsset = `assets/images/candidate_${char}.png`;
     const fallbackRoot = `candidate_${char}.png`;
+    const paslonNum = index + 1;
+    const isSelected = selectedCandidateId === c.id;
+
     return `
-    <div class="cand-card" id="card-${c.id}" onclick="selectCandidate('${c.id}')">
-      <div class="cand-img-wrap">
-        <img src="${photoUrl}" alt="Paslon ${index + 1}" onerror="if(!this.dataset.triedAsset){this.dataset.triedAsset='1';this.src='${fallbackAsset}';}else if(!this.dataset.triedRoot){this.dataset.triedRoot='1';this.src='${fallbackRoot}';}else{this.src='https://placehold.co/140x160?text=Paslon+${index + 1}';}">
+    <div class="cand-card ${isSelected ? 'selected' : ''}" id="card-${c.id}" onclick="selectCandidate('${c.id}')" data-id="${c.id}">
+      <div class="cand-card-main">
+        <div class="cand-img-wrap">
+          <img src="${photoUrl}" alt="Paslon ${paslonNum}" onerror="if(!this.dataset.triedAsset){this.dataset.triedAsset='1';this.src='${fallbackAsset}';}else if(!this.dataset.triedRoot){this.dataset.triedRoot='1';this.src='${fallbackRoot}';}else{this.src='https://placehold.co/140x160?text=Paslon+${paslonNum}';}">
+          <div class="cand-num-badge cand-img-badge ${c.num}">${paslonNum}</div>
+        </div>
+        <div class="cand-body">
+          <div class="cand-header-meta">
+            <span class="cand-badge-pill ${c.num}">PASLON 0${paslonNum}</span>
+            <div class="cand-select-indicator">
+              <span class="select-label">${isSelected ? 'Terpilih' : 'Pilih'}</span>
+              <div class="radio-box"></div>
+            </div>
+          </div>
+          <h3 class="cname">${c.name}</h3>
+          <div class="cvisi-snippet">
+            <i class="ti ti-quote snippet-icon" aria-hidden="true"></i>
+            <span class="cvisi-snippet-text">${c.visi}</span>
+          </div>
+          <div class="cand-action-row">
+            <button type="button" class="btn-toggle-detail" id="btn-toggle-${c.id}" onclick="toggleCandDetail(event, '${c.id}')" aria-expanded="false" aria-controls="details-${c.id}">
+              <span class="toggle-text"><i class="ti ti-file-text" aria-hidden="true"></i> Visi, Misi & Proker</span>
+              <i class="ti ti-chevron-down toggle-icon" id="toggle-icon-${c.id}" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="btn-quick-select" onclick="selectCandidate('${c.id}'); event.stopPropagation();">
+              <i class="ti ti-check" aria-hidden="true"></i>
+              <span class="select-btn-text">${isSelected ? 'Dipilih' : 'Pilih Paslon'}</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="cand-body">
-        <div class="cand-num-badge ${c.num}">${index + 1}</div>
-        <div class="cname">${c.name}</div>
-        <div class="cvisi-title">Visi:</div>
-        <div class="cvisi">${c.visi}</div>
-        <div class="cmisi-title">Misi:</div>
-        <ol class="cmisi" style="list-style-position: inside;">
-          ${(c.misi || '').split('<br>').map(m => `<li>${m.replace(/^\d+\.\s*/, '')}</li>`).join('')}
-        </ol>
-        <div class="cproker-title">Program Kerja:</div>
-        <div class="cproker">${c.proker || '-'}</div>
-      </div>
-      <div class="radio-box-container">
-        <div class="radio-box"></div>
+
+      <div class="cand-details-drawer" id="details-${c.id}">
+        <div class="cand-details-inner">
+          <div class="cand-details-tabs">
+            <button type="button" class="cand-tab-btn active" id="tabbtn-vm-${c.id}" onclick="switchCandTab(event, '${c.id}', 'visimisi')">
+              <i class="ti ti-target-arrow" aria-hidden="true"></i> Visi & Misi
+            </button>
+            <button type="button" class="cand-tab-btn" id="tabbtn-pk-${c.id}" onclick="switchCandTab(event, '${c.id}', 'proker')">
+              <i class="ti ti-list-check" aria-hidden="true"></i> Program Kerja
+            </button>
+          </div>
+
+          <div class="cand-tab-pane active" id="tab-visimisi-${c.id}">
+            <div class="detail-block detail-visi-box">
+              <div class="cvisi-title"><i class="ti ti-bulb" aria-hidden="true"></i> VISI</div>
+              <div class="cvisi">${c.visi}</div>
+            </div>
+            <div class="detail-block detail-misi-box">
+              <div class="cmisi-title"><i class="ti ti-checklist" aria-hidden="true"></i> MISI</div>
+              <ol class="cmisi">
+                ${(c.misi || '').split('<br>').filter(m => m.trim()).map(m => `<li>${m.replace(/^\d+\.\s*/, '')}</li>`).join('')}
+              </ol>
+            </div>
+          </div>
+
+          <div class="cand-tab-pane" id="tab-proker-${c.id}">
+            <div class="detail-block detail-proker-box">
+              <div class="cproker-title"><i class="ti ti-sparkles" aria-hidden="true"></i> PROGRAM KERJA UNGGULAN</div>
+              <div class="cproker-content">${formatProkerItems(c.proker)}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 
+function formatProkerItems(rawProker) {
+  if (!rawProker || rawProker === '-') return '<div class="cproker">-</div>';
+  const parts = rawProker.split('<br><br>');
+  return parts.map(part => `<div class="proker-item-card">${part}</div>`).join('');
+}
+
+function toggleCandDetail(event, id) {
+  if (event) event.stopPropagation();
+  const drawer = document.getElementById(`details-${id}`);
+  const btn = document.getElementById(`btn-toggle-${id}`);
+  const icon = document.getElementById(`toggle-icon-${id}`);
+  if (!drawer) return;
+
+  const isOpen = drawer.classList.contains('open');
+  if (isOpen) {
+    drawer.classList.remove('open');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+    if (icon) icon.className = 'ti ti-chevron-down toggle-icon';
+  } else {
+    drawer.classList.add('open');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+    if (icon) icon.className = 'ti ti-chevron-up toggle-icon';
+  }
+}
+
+function switchCandTab(event, id, tabName) {
+  if (event) event.stopPropagation();
+  const tabVm = document.getElementById(`tab-visimisi-${id}`);
+  const tabPk = document.getElementById(`tab-proker-${id}`);
+  const btnVm = document.getElementById(`tabbtn-vm-${id}`);
+  const btnPk = document.getElementById(`tabbtn-pk-${id}`);
+
+  if (tabName === 'visimisi') {
+    tabVm?.classList.add('active');
+    tabPk?.classList.remove('active');
+    btnVm?.classList.add('active');
+    btnPk?.classList.remove('active');
+  } else {
+    tabPk?.classList.add('active');
+    tabVm?.classList.remove('active');
+    btnPk?.classList.add('active');
+    btnVm?.classList.remove('active');
+  }
+}
+
 function selectCandidate(id) {
   selectedCandidateId = id;
-  document.querySelectorAll('.cand-card').forEach(el => el.classList.remove('selected'));
-  const card = document.getElementById('card-' + id);
-  if (card) card.classList.add('selected');
+  document.querySelectorAll('.cand-card').forEach(el => {
+    const isThis = el.id === 'card-' + id;
+    el.classList.toggle('selected', isThis);
+    const label = el.querySelector('.select-label');
+    if (label) label.textContent = isThis ? 'Terpilih' : 'Pilih';
+    const btnText = el.querySelector('.select-btn-text');
+    if (btnText) btnText.textContent = isThis ? 'Dipilih' : 'Pilih Paslon';
+  });
 }
 
 function setRole(role) {
   voterRole           = 'siswa';
   currentVoter        = null;
   selectedCandidateId = null;
-  document.getElementById('name-reveal').classList.remove('show');
-  document.querySelectorAll('.cand-card').forEach(el => el.classList.remove('selected'));
+  document.getElementById('name-reveal')?.classList.remove('show');
+  document.querySelectorAll('.cand-card').forEach(el => {
+    el.classList.remove('selected');
+    const label = el.querySelector('.select-label');
+    if (label) label.textContent = 'Pilih';
+    const btnText = el.querySelector('.select-btn-text');
+    if (btnText) btnText.textContent = 'Pilih Paslon';
+  });
   
+  // Close any open candidate details drawers
+  document.querySelectorAll('.cand-details-drawer').forEach(drawer => {
+    drawer.classList.remove('open');
+  });
+  document.querySelectorAll('.toggle-icon').forEach(icon => {
+    icon.className = 'ti ti-chevron-down toggle-icon';
+  });
+
   document.querySelector('.cand-section')?.classList.remove('show');
   document.querySelector('.submit-wrap')?.classList.remove('show');
 
