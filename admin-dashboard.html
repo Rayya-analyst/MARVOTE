@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — MARVOTE SMKN 2 Mojokerto</title>
+  <meta name="description" content="Dashboard admin pemilihan Ketua OSIS SMKN 2 Mojokerto.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/layout.css">
+  <link rel="stylesheet" href="assets/css/report.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+  
+  <script>
+    if (sessionStorage.getItem('marvote_admin_auth') !== '1') {
+      location.replace('rahasia-panitia.html');
+    }
+  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="grid-bg">
+
+  <h1 class="sr-only">Admin Dashboard MARVOTE</h1>
+
+  <header class="navbar">
+    <div class="navbar-brand">
+      <div class="logo-group">
+        <img src="assets/images/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
+        <img src="assets/images/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
+        <img src="assets/images/logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
+      </div>
+      <div>
+        <div class="brand-title">OSIS SMK NEGERI 2 MOJOKERTO</div>
+        <div class="brand-sub">Admin Dashboard · MARVOTE</div>
+      </div>
+    </div>
+    <div class="navbar-actions">
+      <div class="live-indicator-badge" id="admin-live-badge" title="Pembaruan otomatis aktif">
+        <span class="live-pulse-dot"></span> LIVE
+      </div>
+      <a class="btn-report-header" href="live-report.html" target="_blank">
+        <i class="ti ti-activity" aria-hidden="true"></i> Live Report
+      </a>
+      <button class="btn-logout" onclick="adminLogout()">
+        <i class="ti ti-logout" aria-hidden="true"></i> Keluar
+      </button>
+    </div>
+  </header>
+
+  <main class="admin-body">
+
+    <div class="admin-section-title">
+      <i class="ti ti-chart-bar"></i> Statistik Suara
+    </div>
+    <div class="admin-stat-grid">
+      <div class="admin-stat-card">
+        <i class="ti ti-box-multiple admin-stat-icon" aria-hidden="true"></i>
+        <div class="admin-stat-num" id="admin-stat-votes">—</div>
+        <div class="admin-stat-lbl">Suara Masuk</div>
+      </div>
+      <div class="admin-stat-card">
+        <i class="ti ti-users admin-stat-icon" aria-hidden="true"></i>
+        <div class="admin-stat-num" id="admin-stat-total">—</div>
+        <div class="admin-stat-lbl">Pemilih Terdaftar</div>
+      </div>
+      <div class="admin-stat-card">
+        <i class="ti ti-chart-pie admin-stat-icon" aria-hidden="true"></i>
+        <div class="admin-stat-num" id="admin-stat-pct">—</div>
+        <div class="admin-stat-lbl">Tingkat Partisipasi</div>
+      </div>
+    </div>
+
+    <hr class="admin-divider">
+
+    <div class="admin-section-title">
+      <i class="ti ti-trophy"></i> Hasil per Paslon
+    </div>
+    <div class="result-wrap">
+      <div id="result-chart">
+        <div style="text-align:center;padding:32px;color:var(--grey);font-weight:600;">
+          <i class="ti ti-loader" style="animation:spin 1s linear infinite;font-size:24px;display:block;margin-bottom:8px;"></i>
+          Memuat data...
+        </div>
+      </div>
+    </div>
+
+    <hr class="admin-divider">
+
+    <div class="admin-section-title">
+      <i class="ti ti-chart-pie-2"></i> Grafik Lingkaran Hasil Paslon
+    </div>
+    <div class="result-wrap pie-chart-wrap">
+      <div class="pie-chart-header">
+        <div class="pie-chart-title">
+          <i class="ti ti-chart-donut-3" aria-hidden="true"></i> Proporsi Perolehan Suara
+        </div>
+        <span class="pie-chart-badge" id="pie-total-badge">0 Suara Masuk</span>
+      </div>
+
+      <div class="pie-chart-container">
+        <div class="pie-chart-canvas-wrap">
+          <canvas id="paslonPieChart" width="240" height="240"></canvas>
+          <div class="pie-chart-center-overlay" id="pie-center-overlay">
+            <div class="pie-center-num" id="pie-center-num">0</div>
+            <div class="pie-center-lbl">Total Suara</div>
+          </div>
+        </div>
+        <div class="pie-chart-legend" id="pie-chart-legend">
+          
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-act-row">
+      <button class="btn-admin-act" onclick="refreshAdmin()">
+        <i class="ti ti-refresh" aria-hidden="true"></i> Refresh
+      </button>
+      <button class="btn-admin-act" onclick="exportCSV()">
+        <i class="ti ti-file-spreadsheet" aria-hidden="true"></i> Export CSV
+      </button>
+      <button class="btn-admin-act danger" id="btn-delete-all-votes" onclick="resetAllVotesAdmin()" title="Hapus semua data suara dari database dan penyimpanan lokal">
+        <i class="ti ti-trash" aria-hidden="true"></i> Hapus Semua Data Voting
+      </button>
+    </div>
+
+    <hr class="admin-divider">
+
+    <div class="admin-section-title">
+      <i class="ti ti-list-check"></i> Semua Suara Masuk
+    </div>
+    <div class="table-wrap" id="admin-vote-table">
+      <div style="text-align:center;padding:48px;color:var(--grey);font-weight:600;">
+        <i class="ti ti-loader" style="animation:spin 1s linear infinite;font-size:24px;display:block;margin-bottom:8px;"></i>
+        Memuat data...
+      </div>
+    </div>
+
+  </main>
+
+  <script src="assets/js/config.js" defer></script>
+  <script src="assets/js/admin.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — MARVOTE SMKN 2 Mojokerto</title>
+  <meta name="description" content="Login admin pemilihan Ketua OSIS SMKN 2 Mojokerto.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body class="grid-bg">
+
+  <h1 class="sr-only">Admin Login MARVOTE</h1>
+
+  <div class="admin-login-page" id="login-page">
+    <div class="admin-login-box">
+
+      <div class="admin-login-logo">
+        <img src="assets/images/logoprov.png" alt="Logo Provinsi" onerror="this.style.display='none'">
+        <img src="assets/images/logoskaneda.png" alt="Logo Skaneda" onerror="this.style.display='none'">
+        <img src="assets/images/logo.png" alt="Logo OSIS" onerror="this.style.display='none'">
+      </div>
+
+      <div class="admin-login-title-wrap">
+        <div style="display:flex;justify-content:center;margin-bottom:16px;">
+          <div class="admin-badge">
+            <i class="ti ti-shield-check" style="font-size:14px;"></i> Area Terbatas
+          </div>
+        </div>
+        <h2 class="admin-login-h">Admin <span>Panel</span></h2>
+        <p class="admin-login-sub">MARVOTE · OSIS SMK Negeri 2 Mojokerto</p>
+      </div>
+
+      <div class="admin-card">
+        <div id="admin-login-err" class="admin-err">
+          <i class="ti ti-alert-circle" style="font-size:18px;flex-shrink:0;"></i>
+          <span id="admin-login-err-text"></span>
+        </div>
+
+        <div class="admin-input-label">
+          <i class="ti ti-key"></i> Password Admin
+        </div>
+        <div class="admin-input-wrap">
+          <i class="ti ti-lock admin-input-icon"></i>
+          <input
+            type="password"
+            id="admin-pw"
+            placeholder="Masukkan password..."
+            autocomplete="current-password"
+          >
+          <button
+            type="button"
+            class="btn-toggle-pw"
+            id="btn-toggle-pw"
+            onclick="togglePasswordVisibility()"
+            title="Lihat password"
+            aria-label="Lihat password"
+          >
+            <i class="ti ti-eye" id="toggle-pw-icon"></i>
+          </button>
+        </div>
+
+        <button class="btn-admin-login" id="btn-admin-login" onclick="doLogin()">
+          <i class="ti ti-login" aria-hidden="true"></i> Masuk ke Dashboard
+        </button>
+      </div>
+
+      <p class="admin-back-link">
+        <a href="index.html">← Kembali ke Halaman Voting</a>
+      </p>
+
+    </div>
+  </div>
+
+  <script>
+
+    const ADMIN_PASSWORD_HASH = "04430929550a97cda4cf1882f4e12f181400b7879c85527bafeec04236974ddd";
+
+    async function hashSHA256(str) {
+      if (window.crypto && crypto.subtle && crypto.subtle.digest) {
+        try {
+          const msgBuffer = new TextEncoder().encode(str);
+          const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+          return Array.from(new Uint8Array(hashBuffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+        } catch (e) {  }
+      }
+      return sha256Fallback(str);
+    }
+
+    function sha256Fallback(ascii) {
+      function rightRotate(value, amount) { return (value>>>amount) | (value<<(32 - amount)); }
+      var mathPow = Math.pow, maxWord = mathPow(2, 32), words = [], asciiBitLength = ascii.length * 8;
+      var hash = [], k = [], primeCounter = 0, isComposite = {};
+      for (var candidate = 2; primeCounter < 64; candidate++) {
+        if (!isComposite[candidate]) {
+          for (var i = 0; i < 313; i += candidate) { isComposite[i] = candidate; }
+          hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+          k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+        }
+      }
+      ascii += '\x80';
+      while (ascii.length % 64 - 56) ascii += '\x00';
+      for (var i = 0; i < ascii.length; i++) {
+        var j = ascii.charCodeAt(i);
+        words[i >> 2] |= j << ((3 - i) % 4) * 8;
+      }
+      words[words.length] = ((asciiBitLength / maxWord) | 0);
+      words[words.length] = asciiBitLength;
+      for (var j = 0; j < words.length;) {
+        var w = words.slice(j, j += 16), oldHash = hash;
+        hash = hash.slice(0, 8);
+        for (var i = 0; i < 64; i++) {
+          var i2 = i + j, w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
+          var temp1 = hash[7]
+            + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+            + ((e & hash[5]) ^ ((~e) & hash[6]))
+            + k[i]
+            + (w[i] = (i < 16) ? w[i] : (
+                w[i - 16]
+                + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+                + w[i - 7]
+                + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+              ) | 0
+            );
+          var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+            + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+          hash = [(temp1 + temp2) | 0].concat(hash);
+          hash[4] = (hash[4] + temp1) | 0;
+        }
+        for (var i = 0; i < 8; i++) { hash[i] = (hash[i] + oldHash[i]) | 0; }
+      }
+      var res = '';
+      for (var i = 0; i < 8; i++) {
+        for (var i2 = 3; i2 >= 0; i2--) {
+          var b = (hash[i] >> (i2 * 8)) & 255;
+          res += ((b < 16) ? 0 : '') + b.toString(16);
+        }
+      }
+      return res;
+    }
+
+    if (sessionStorage.getItem('marvote_admin_auth') === '1') {
+      location.replace('admin-dashboard.html');
+    }
+
+    function togglePasswordVisibility() {
+      const pwInput = document.getElementById('admin-pw');
+      const toggleIcon = document.getElementById('toggle-pw-icon');
+      const toggleBtn = document.getElementById('btn-toggle-pw');
+
+      if (pwInput.type === 'password') {
+        pwInput.type = 'text';
+        toggleIcon.className = 'ti ti-eye-off';
+        toggleBtn.setAttribute('title', 'Sembunyikan password');
+        toggleBtn.setAttribute('aria-label', 'Sembunyikan password');
+      } else {
+        pwInput.type = 'password';
+        toggleIcon.className = 'ti ti-eye';
+        toggleBtn.setAttribute('title', 'Lihat password');
+        toggleBtn.setAttribute('aria-label', 'Lihat password');
+      }
+      pwInput.focus();
+    }
+
+    document.getElementById('admin-pw').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    async function doLogin() {
+      const pwInput = document.getElementById('admin-pw');
+      const pw      = pwInput.value.trim();
+      const errEl   = document.getElementById('admin-login-err');
+      const errTxt  = document.getElementById('admin-login-err-text');
+      const btn     = document.getElementById('btn-admin-login');
+
+      if (!pw) {
+        errTxt.textContent = 'Silakan masukkan password admin.';
+        errEl.classList.add('show');
+        setTimeout(() => errEl.classList.remove('show'), 3000);
+        pwInput.focus();
+        return;
+      }
+
+      btn.disabled = true;
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite;"></i> Memeriksa...';
+
+      try {
+        const inputHash = await hashSHA256(pw);
+
+        if (inputHash === ADMIN_PASSWORD_HASH) {
+          sessionStorage.setItem('marvote_admin_auth', '1');
+          location.replace('admin-dashboard.html');
+        } else {
+          errTxt.textContent = 'Password salah. Coba lagi.';
+          errEl.classList.add('show');
+          setTimeout(() => errEl.classList.remove('show'), 3500);
+          pwInput.value = '';
+          pwInput.focus();
+        }
+      } catch (err) {
+        console.error('Error saat verifikasi password:', err);
+        errTxt.textContent = 'Terjadi kesalahan sistem saat memproses password.';
+        errEl.classList.add('show');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    }
+  </script>
+</body>
+</html>
