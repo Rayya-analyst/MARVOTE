@@ -39,6 +39,9 @@
       </div>
     </div>
     <div class="navbar-actions">
+      <div class="live-indicator-badge" id="admin-live-badge" title="Pembaruan otomatis aktif">
+        <span class="live-pulse-dot"></span> LIVE
+      </div>
       <a class="btn-report-header" href="live-report.html" target="_blank">
         <i class="ti ti-activity" aria-hidden="true"></i> Live Report
       </a>
@@ -119,8 +122,8 @@
       <button class="btn-admin-act" onclick="exportCSV()">
         <i class="ti ti-file-spreadsheet" aria-hidden="true"></i> Export CSV
       </button>
-      <button class="btn-admin-act danger" onclick="resetLocalVotesAdmin()">
-        <i class="ti ti-trash" aria-hidden="true"></i> Hapus Data Lokal
+      <button class="btn-admin-act danger" id="btn-delete-all-votes" onclick="resetAllVotesAdmin()" title="Hapus semua data suara dari database dan penyimpanan lokal">
+        <i class="ti ti-trash" aria-hidden="true"></i> Hapus Semua Data Voting
       </button>
     </div>
 

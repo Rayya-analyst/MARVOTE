@@ -46,7 +46,8 @@ async function initApp() {
       if (candidatesData && candidatesData.length > 0) {
         CANDIDATES = candidatesData.map((candidate, index) => ({
           ...candidate,
-          ...CANDIDATE_DETAILS[index]
+          ...CANDIDATE_DETAILS[index],
+          photo: resolveCandidatePhoto(candidate.photo, index)
         }));
         console.log("Data paslon berhasil dimuat dari Supabase.");
       }
@@ -64,11 +65,26 @@ async function initApp() {
       id:    String.fromCharCode(65 + index),
       num:   `n${String.fromCharCode(65 + index)}`,
       pb:    `pb${String.fromCharCode(65 + index)}`,
-      photo: `assets/images/candidate_${String.fromCharCode(97 + index)}.png`
+      photo: resolveCandidatePhoto(null, index)
     }));
   }
 
   renderCandidates();
+}
+
+function resolveCandidatePhoto(photo, index) {
+  const defaultFile = `candidate_${String.fromCharCode(97 + index)}.png`;
+  if (!photo) {
+    return `assets/images/${defaultFile}`;
+  }
+  if (photo.startsWith('http://') || photo.startsWith('https://') || photo.startsWith('data:')) {
+    return photo;
+  }
+  if (photo.startsWith('assets/images/')) {
+    return photo;
+  }
+  const filename = photo.split('/').pop();
+  return `assets/images/${filename}`;
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
@@ -77,10 +93,14 @@ function renderCandidates() {
   const container = document.getElementById('cand-list');
   if (!container) return;
   
-  container.innerHTML = CANDIDATES.map((c, index) => `
+  container.innerHTML = CANDIDATES.map((c, index) => {
+    const photoUrl = resolveCandidatePhoto(c.photo, index);
+    const char = String.fromCharCode(97 + index);
+    const fallbackRoot = `candidate_${char}.png`;
+    return `
     <div class="cand-card" id="card-${c.id}" onclick="selectCandidate('${c.id}')">
       <div class="cand-img-wrap">
-        <img src="${c.photo}" alt="Paslon ${index + 1}" onerror="this.src='https://placehold.co/140x160?text=Paslon+${index + 1}'">
+        <img src="${photoUrl}" alt="Paslon ${index + 1}" onerror="if(!this.dataset.triedBackup){this.dataset.triedBackup='1';this.src='${fallbackRoot}';}else{this.src='https://placehold.co/140x160?text=Paslon+${index + 1}';}">
       </div>
       <div class="cand-body">
         <div class="cand-num-badge ${c.num}">${index + 1}</div>
@@ -89,7 +109,7 @@ function renderCandidates() {
         <div class="cvisi">${c.visi}</div>
         <div class="cmisi-title">Misi:</div>
         <ol class="cmisi" style="list-style-position: inside;">
-          ${c.misi.split('<br>').map(m => `<li>${m.replace(/^\d+\.\s*/, '')}</li>`).join('')}
+          ${(c.misi || '').split('<br>').map(m => `<li>${m.replace(/^\d+\.\s*/, '')}</li>`).join('')}
         </ol>
         <div class="cproker-title">Program Kerja:</div>
         <div class="cproker">${c.proker || '-'}</div>
@@ -97,7 +117,8 @@ function renderCandidates() {
       <div class="radio-box-container">
         <div class="radio-box"></div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function selectCandidate(id) {
@@ -289,6 +310,17 @@ async function submitVote() {
   }
 
   if (success) {
+    try {
+      localStorage.setItem('marvote_last_vote_timestamp', String(Date.now()));
+      if (typeof BroadcastChannel !== 'undefined') {
+        const bc = new BroadcastChannel('marvote_events');
+        bc.postMessage({ type: 'VOTE_SUBMITTED', timestamp: Date.now() });
+        bc.close();
+      }
+    } catch (e) {
+      console.warn("Notification error:", e);
+    }
+
     document.getElementById('receipt-out').innerHTML = `
       <div class="receipt-hdr">✦ BUKTI SUARA SAH ✦</div>
       <div class="r-row"><span class="r-key">Voter</span><span class="r-val">${entry.voter_name}</span></div>

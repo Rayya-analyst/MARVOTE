@@ -1,25 +1,39 @@
 
 
+
 const PASLON_LABELS = [
-  { id: 'A', label: 'Natasya & Galeh', badgeClass: 'rA', fillClass: 'fA', pbClass: 'pbA', color: '#FFAEC9' },
-  { id: 'B', label: 'Rona & Nila',     badgeClass: 'rB', fillClass: 'fB', pbClass: 'pbB', color: '#B2F0D8' },
-  { id: 'C', label: 'Vizia & Wella',   badgeClass: 'rC', fillClass: 'fC', pbClass: 'pbC', color: '#FFE399' },
+  { id: '01', label: 'Natasya & Galeh', badgeClass: 'rA', fillClass: 'fA', pbClass: 'pbA', color: '#FFAEC9' },
+  { id: '02', label: 'Rona & Nila',     badgeClass: 'rB', fillClass: 'fB', pbClass: 'pbB', color: '#B2F0D8' },
+  { id: '03', label: 'Vizia & Wella',   badgeClass: 'rC', fillClass: 'fC', pbClass: 'pbC', color: '#FFE399' },
 ];
 
 let adminAllVotes = [];
 let paslonPieChartInstance = null;
+let realtimeChannel = null;
+let broadcastChannel = null;
+let pollingTimer = null;
+let lastVotesHash = "";
+let isFetching = false;
+let isRealtimeSubscribed = false;
 
 function adminLogout() {
+  if (pollingTimer) clearInterval(pollingTimer);
+  if (realtimeChannel && supabaseClient) supabaseClient.removeChannel(realtimeChannel);
+  if (broadcastChannel) broadcastChannel.close();
   sessionStorage.removeItem('marvote_admin_auth');
   location.replace('rahasia-panitia.html');
 }
 
-async function loadAdminDashboard() {
-  
-  ['admin-stat-votes', 'admin-stat-total', 'admin-stat-pct'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i>';
-  });
+async function loadAdminDashboard(isSilent = false) {
+  if (isFetching) return;
+  isFetching = true;
+
+  if (!isSilent) {
+    ['admin-stat-votes', 'admin-stat-total', 'admin-stat-pct'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i>';
+    });
+  }
 
   let votes = [];
   if (supabaseClient) {
@@ -37,7 +51,6 @@ async function loadAdminDashboard() {
   } else {
     votes = getLocalVotes();
   }
-  adminAllVotes = votes;
 
   let totalSiswa = 0;
   if (supabaseClient) {
@@ -46,22 +59,43 @@ async function loadAdminDashboard() {
         .from('students')
         .select('*', { count: 'exact', head: true });
       if (!error) totalSiswa = count || 0;
-    } catch (e) {  }
+    } catch (e) { }
   }
 
-  renderAdminStats(votes, totalSiswa);
-  renderResultChart(votes);
-  renderPieChart(votes);
-  renderAdminVoteTable(votes);
+  const newHash = votes.map(v => `${v.id || ''}_${v.voter_identifier}_${v.candidate_id}_${v.timestamp}`).join('|');
+  const hasChanged = newHash !== lastVotesHash;
+
+  if (hasChanged || !isSilent) {
+    lastVotesHash = newHash;
+    adminAllVotes = votes;
+
+    renderAdminStats(votes, totalSiswa);
+    renderResultChart(votes);
+    renderPieChart(votes);
+    renderAdminVoteTable(votes);
+  }
+
+  isFetching = false;
 }
 
 function renderAdminStats(votes, totalSiswa) {
   const suaraTotal = votes.length;
   const pct        = totalSiswa ? Math.round((suaraTotal / totalSiswa) * 100) : '—';
 
-  document.getElementById('admin-stat-votes').textContent = suaraTotal;
-  document.getElementById('admin-stat-total').textContent = totalSiswa || '—';
-  document.getElementById('admin-stat-pct').textContent   = totalSiswa ? `${pct}%` : '—';
+  const votesEl = document.getElementById('admin-stat-votes');
+  const totalEl = document.getElementById('admin-stat-total');
+  const pctEl   = document.getElementById('admin-stat-pct');
+
+  if (votesEl) {
+    if (votesEl.textContent !== String(suaraTotal) && votesEl.textContent !== '—') {
+      votesEl.classList.remove('highlight-update');
+      void votesEl.offsetWidth;
+      votesEl.classList.add('highlight-update');
+    }
+    votesEl.textContent = suaraTotal;
+  }
+  if (totalEl) totalEl.textContent = totalSiswa || '—';
+  if (pctEl) pctEl.textContent   = totalSiswa ? `${pct}%` : '—';
 }
 
 function renderResultChart(votes) {
@@ -77,6 +111,20 @@ function renderResultChart(votes) {
       counts[v.candidate_id]++;
     }
   });
+
+  const existingRows = container.querySelectorAll('.result-row');
+  if (existingRows.length === PASLON_LABELS.length) {
+    PASLON_LABELS.forEach((p, i) => {
+      const count = counts[p.id];
+      const pct   = votes.length ? Math.round((count / total) * 100) : 0;
+      const row   = existingRows[i];
+      const fill  = row.querySelector('.result-fill');
+      const countEl = row.querySelector('.result-count');
+      if (fill) fill.style.width = pct + '%';
+      if (countEl) countEl.innerHTML = `${count} suara<br><small style="color:var(--grey);font-weight:600;">${pct}%</small>`;
+    });
+    return;
+  }
 
   container.innerHTML = PASLON_LABELS.map(p => {
     const count = counts[p.id];
@@ -162,12 +210,6 @@ function renderPieChart(votes) {
   const fallbackEl = canvas.parentElement?.querySelector('.pie-svg-fallback');
   if (fallbackEl) fallbackEl.remove();
 
-  if (paslonPieChartInstance) {
-    paslonPieChartInstance.destroy();
-    paslonPieChartInstance = null;
-  }
-
-  const ctx = canvas.getContext('2d');
   const hasVotes = total > 0;
   const chartData = hasVotes
     ? PASLON_LABELS.map(p => counts[p.id])
@@ -177,6 +219,17 @@ function renderPieChart(votes) {
     : ['#EAEAEA', '#EAEAEA', '#EAEAEA'];
   const chartLabels = PASLON_LABELS.map(p => `Paslon ${p.id} (${p.label})`);
 
+  if (paslonPieChartInstance) {
+    paslonPieChartInstance.data.labels = chartLabels;
+    paslonPieChartInstance.data.datasets[0].data = chartData;
+    paslonPieChartInstance.data.datasets[0].backgroundColor = chartColors;
+    paslonPieChartInstance.data.datasets[0].hoverOffset = hasVotes ? 10 : 0;
+    paslonPieChartInstance.options.plugins.tooltip.enabled = hasVotes;
+    paslonPieChartInstance.update();
+    return;
+  }
+
+  const ctx = canvas.getContext('2d');
   paslonPieChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
@@ -281,6 +334,8 @@ function renderAdminVoteTable(votes) {
   const rows = votes.length
     ? votes.map((v, i) => {
         const paslon = PASLON_LABELS.find(p => p.id === v.candidate_id);
+        const safeName = (v.voter_name || '').replace(/'/g, "\\'");
+        const voteIdArg = v.id !== undefined && v.id !== null ? v.id : `'${v.voter_identifier || ''}'`;
         return `
           <tr>
             <td style="color:#888">${i + 1}</td>
@@ -290,9 +345,14 @@ function renderAdminVoteTable(votes) {
               <span class="pbadge ${paslon?.pbClass || ''}">Paslon ${v.candidate_id}</span>
             </td>
             <td style="font-size:11px;color:#666">${new Date(v.timestamp).toLocaleString('id-ID')}</td>
+            <td style="text-align:center;width:60px;">
+              <button class="btn-del-row" onclick="deleteSingleVote(${voteIdArg}, '${safeName}')" title="Hapus suara ini">
+                <i class="ti ti-trash"></i>
+              </button>
+            </td>
           </tr>`;
       }).join('')
-    : `<tr><td colspan="5" class="empty-state">Belum ada suara masuk.</td></tr>`;
+    : `<tr><td colspan="6" class="empty-state">Belum ada suara masuk.</td></tr>`;
 
   tableWrap.innerHTML = `
     <table class="vtable">
@@ -303,6 +363,7 @@ function renderAdminVoteTable(votes) {
           <th>Identitas / Kelas</th>
           <th>Pilihan</th>
           <th>Waktu</th>
+          <th style="width:60px;text-align:center">Aksi</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -334,15 +395,182 @@ function exportCSV() {
   URL.revokeObjectURL(url);
 }
 
-function resetLocalVotesAdmin() {
-  if (!confirm('Hapus SEMUA data suara di localStorage browser ini?\n(Data di Supabase tidak terpengaruh)')) return;
+async function resetAllVotesAdmin() {
+  const voteCount = adminAllVotes.length;
+  const confirmMsg = `PERINGATAN!\n\nApakah Anda yakin ingin menghapus SEMUA data suara (${voteCount} suara) dari sistem?\n\nTindakan ini akan menghapus data di database Supabase dan penyimpanan lokal browser. Data yang dihapus TIDAK BISA dipulihkan kembali!`;
+  
+  if (!confirm(confirmMsg)) return;
+
+  const btn = document.getElementById('btn-delete-all-votes');
+  let originalHtml = '';
+  if (btn) {
+    originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Menghapus...';
+  }
+
+  let errorOccurred = false;
+  let errorMsg = '';
+
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient
+        .from('votes')
+        .delete()
+        .neq('id', 0);
+
+      if (error) {
+        const { error: err2 } = await supabaseClient
+          .from('votes')
+          .delete()
+          .gte('id', 0);
+        if (err2) throw err2;
+      }
+    } catch (e) {
+      console.error('Gagal hapus data dari Supabase:', e);
+      errorOccurred = true;
+      errorMsg = e.message || String(e);
+    }
+  }
+
   clearLocalVotes();
-  alert('Data lokal berhasil dihapus.');
-  loadAdminDashboard();
+
+  try {
+    localStorage.setItem('marvote_last_vote_timestamp', String(Date.now()));
+    if (typeof BroadcastChannel !== 'undefined') {
+      const bc = new BroadcastChannel('marvote_events');
+      bc.postMessage({ type: 'VOTES_DELETED', timestamp: Date.now() });
+      bc.close();
+    }
+  } catch (e) {}
+
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = originalHtml;
+  }
+
+  if (errorOccurred) {
+    alert(`Peringatan: Gagal menghapus sebagian data dari cloud (${errorMsg}). Data lokal telah dibersihkan.`);
+  } else {
+    alert('Semua data voting berhasil dihapus dari database dan sistem.');
+  }
+
+  lastVotesHash = "";
+  await loadAdminDashboard(false);
+}
+
+async function deleteSingleVote(voteId, voterName) {
+  if (!confirm(`Hapus data suara dari "${voterName}"?`)) return;
+
+  if (supabaseClient && voteId && typeof voteId === 'number') {
+    try {
+      const { error } = await supabaseClient
+        .from('votes')
+        .delete()
+        .eq('id', voteId);
+      if (error) throw error;
+    } catch (e) {
+      console.error('Gagal menghapus suara dari database:', e);
+      alert('Gagal menghapus data dari database: ' + (e.message || e));
+      return;
+    }
+  } else if (supabaseClient && typeof voteId === 'string') {
+    try {
+      const { error } = await supabaseClient
+        .from('votes')
+        .delete()
+        .eq('voter_identifier', voteId);
+      if (error) throw error;
+    } catch (e) {
+      console.error('Gagal menghapus suara dari database:', e);
+    }
+  }
+
+  let local = getLocalVotes();
+  local = local.filter(v => (typeof voteId === 'number' ? v.id !== voteId : v.voter_identifier !== voteId));
+  saveLocalVotes(local);
+
+  try {
+    localStorage.setItem('marvote_last_vote_timestamp', String(Date.now()));
+    if (typeof BroadcastChannel !== 'undefined') {
+      const bc = new BroadcastChannel('marvote_events');
+      bc.postMessage({ type: 'VOTES_DELETED', timestamp: Date.now() });
+      bc.close();
+    }
+  } catch (e) {}
+
+  lastVotesHash = "";
+  loadAdminDashboard(true);
 }
 
 function refreshAdmin() {
-  loadAdminDashboard();
+  lastVotesHash = "";
+  loadAdminDashboard(false);
 }
 
-document.addEventListener('DOMContentLoaded', loadAdminDashboard);
+function setupRealtimeSync() {
+  if (isRealtimeSubscribed) return;
+  isRealtimeSubscribed = true;
+
+  // 1. Supabase Realtime channel
+  if (supabaseClient) {
+    try {
+      realtimeChannel = supabaseClient
+        .channel('admin-dashboard-votes-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, (payload) => {
+          console.log('[Admin Realtime] Perubahan terdeteksi:', payload);
+          loadAdminDashboard(true);
+        })
+        .subscribe((status) => {
+          console.log('[Admin Realtime] Status channel:', status);
+          updateLiveBadge(status === 'SUBSCRIBED');
+        });
+    } catch (e) {
+      console.warn('Supabase realtime error:', e);
+    }
+  }
+
+  // 2. BroadcastChannel API (instan antar-tab di browser yang sama)
+  if (typeof BroadcastChannel !== 'undefined') {
+    try {
+      broadcastChannel = new BroadcastChannel('marvote_events');
+      broadcastChannel.onmessage = (event) => {
+        console.log('[BroadcastChannel] Event diterima:', event.data);
+        if (event.data?.type === 'VOTE_SUBMITTED' || event.data?.type === 'VOTES_DELETED') {
+          loadAdminDashboard(true);
+        }
+      };
+    } catch (e) {
+      console.warn('BroadcastChannel error:', e);
+    }
+  }
+
+  // 3. Storage event listener (fallback tab sinkronisasi)
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY || e.key === 'marvote_last_vote_timestamp') {
+      console.log('[Storage Event] Update terdeteksi:', e.key);
+      loadAdminDashboard(true);
+    }
+  });
+
+  // 4. Smart Polling fallback (setiap 3 detik)
+  if (pollingTimer) clearInterval(pollingTimer);
+  pollingTimer = setInterval(() => {
+    loadAdminDashboard(true);
+  }, 3000);
+}
+
+function updateLiveBadge(isLive) {
+  const badge = document.getElementById('admin-live-badge');
+  if (!badge) return;
+  if (isLive) {
+    badge.title = 'Terhubung ke server secara real-time';
+  } else {
+    badge.title = 'Pembaruan otomatis aktif (mode sinkronisasi berkala)';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadAdminDashboard(false);
+  setupRealtimeSync();
+});

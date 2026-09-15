@@ -825,3 +825,84 @@
   border-top: 3px dashed rgba(0,0,0,0.1);
   margin: 36px 0;
 }
+
+/* LIVE STATUS BADGE */
+.live-indicator-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: white;
+  color: #059669;
+  border: 2.5px solid var(--dark);
+  box-shadow: 2.5px 2.5px 0px var(--dark);
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  font-family: var(--sans);
+  user-select: none;
+}
+
+.live-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10B981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: livePulseAnim 1.8s infinite;
+}
+
+@keyframes livePulseAnim {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 7px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* TABLE ROW DELETE BUTTON */
+.btn-del-row {
+  background: white;
+  border: 2px solid var(--dark);
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 5px 9px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--dark);
+  transition: var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.btn-del-row:hover {
+  background: #fee2e2;
+  color: #991b1b;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 3.5px 3.5px 0 var(--dark);
+}
+
+.btn-del-row:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 var(--dark);
+}
+
+/* LIVE UPDATE HIGHLIGHT */
+@keyframes flashGreen {
+  0% { background-color: rgba(16, 185, 129, 0.25); }
+  100% { background-color: transparent; }
+}
+
+.highlight-update {
+  animation: flashGreen 1.5s ease-out;
+}
+
