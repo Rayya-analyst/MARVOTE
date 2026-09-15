@@ -308,6 +308,9 @@
 }
 
 @media (max-width: 600px) {
+  .dash-body {
+    padding: 20px 14px 80px;
+  }
   .navbar {
     padding: 12px 14px;
     gap: 10px;

@@ -85,31 +85,107 @@ async function getVotes() {
   }
 }
 
-function renderTable(targetId, rows, emptyMessage) {
-  const body = rows.length ? rows.map((row, index) => `
-    <tr>
-      <td style="color:#888">${index + 1}</td>
-      <td><strong>${row.name}</strong></td>
-      <td><span style="text-transform:uppercase;font-size:10px;font-weight:700;background:#eee;padding:3px 8px;border-radius:4px;">${row.role}</span></td>
-      <td><code>${row.identifier}</code></td>
-      <td style="font-size:11px;color:#666">${row.time}</td>
-    </tr>
-  `).join('') : `<tr><td colspan="5" class="empty-state">${emptyMessage}</td></tr>`;
+let currentViewMode = localStorage.getItem('marvote_report_view') || 'table';
+let lastReportData  = null;
 
-  document.getElementById(targetId).innerHTML = `
-    <table class="vtable">
-      <thead>
-        <tr>
-          <th style="width:40px;">#</th>
-          <th>Nama</th>
-          <th>Peran</th>
-          <th>Pengenal / Kelas</th>
-          <th>Waktu Voting</th>
-        </tr>
-      </thead>
-      <tbody>${body}</tbody>
-    </table>
-  `;
+function setViewMode(mode) {
+  currentViewMode = mode;
+  try {
+    localStorage.setItem('marvote_report_view', mode);
+  } catch (e) {}
+
+  const btnTable = document.getElementById('btn-view-table');
+  const btnCards = document.getElementById('btn-view-cards');
+  if (btnTable && btnCards) {
+    btnTable.classList.toggle('active', mode === 'table');
+    btnCards.classList.toggle('active', mode === 'cards');
+  }
+
+  if (lastReportData) {
+    renderReportData(lastReportData);
+  } else {
+    renderReport();
+  }
+}
+
+function formatVoteTime(ts) {
+  if (!ts || ts === '-') return '-';
+  try {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return ts;
+    return d.toLocaleString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  } catch (e) {
+    return ts;
+  }
+}
+
+function renderReportContent(targetId, rows, emptyMessage) {
+  const container = document.getElementById(targetId);
+  if (!container) return;
+
+  if (!rows || !rows.length) {
+    container.innerHTML = `<div class="empty-state">${emptyMessage}</div>`;
+    return;
+  }
+
+  if (currentViewMode === 'cards') {
+    const cardsHtml = rows.map((row, index) => `
+      <div class="report-card-item">
+        <div class="report-card-header">
+          <div class="report-card-meta">
+            <span class="report-card-num">#${index + 1}</span>
+            <span class="role-badge">${row.role}</span>
+          </div>
+          <span class="report-card-time"><i class="ti ti-clock" aria-hidden="true"></i> ${row.time}</span>
+        </div>
+        <div class="report-card-name">${row.name}</div>
+        <div class="report-card-ident"><i class="ti ti-id-badge-2" aria-hidden="true"></i> ${row.identifier}</div>
+      </div>
+    `).join('');
+
+    container.innerHTML = `<div class="report-cards-grid">${cardsHtml}</div>`;
+  } else {
+    const rowsHtml = rows.map((row, index) => `
+      <tr>
+        <td class="col-num">${index + 1}</td>
+        <td class="col-name"><strong>${row.name}</strong></td>
+        <td class="col-role"><span class="role-badge">${row.role}</span></td>
+        <td class="col-ident"><span class="ident-code">${row.identifier}</span></td>
+        <td class="col-time">${row.time !== '-' ? `<i class="ti ti-clock" style="margin-right:4px;" aria-hidden="true"></i>` : ''}${row.time}</td>
+      </tr>
+    `).join('');
+
+    container.innerHTML = `
+      <div class="table-scroll-hint">
+        <i class="ti ti-arrows-left-right" aria-hidden="true"></i> Geser tabel ke samping untuk info lengkap
+      </div>
+      <table class="vtable">
+        <thead>
+          <tr>
+            <th class="col-num">#</th>
+            <th class="col-name">Nama</th>
+            <th class="col-role">Peran</th>
+            <th class="col-ident">Pengenal / Kelas</th>
+            <th class="col-time">Waktu Voting</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+  }
+}
+
+function renderReportData(data) {
+  const { votedRows, unvotedRows } = data;
+  renderReportContent('voted-table', votedRows, 'Belum ada data pemilih yang cocok dengan filter.');
+  renderReportContent('unvoted-table', unvotedRows, 'Semua siswa pada filter ini sudah memilih.');
 }
 
 async function renderReport() {
@@ -130,21 +206,23 @@ async function renderReport() {
   const selectedVotes    = major ? filteredVotedIdentifiers.size : votedIdentifiers.size;
   const participation    = selectedStudents ? Math.round((selectedVotes / selectedStudents) * 100) : 0;
 
-  document.getElementById('kpi-grid').innerHTML = `
-    <div class="kpi-card"><div class="kpi-num">${selectedVotes}</div><div class="kpi-lbl">Suara Masuk</div></div>
-    <div class="kpi-card"><div class="kpi-num">${selectedStudents - selectedVotes}</div><div class="kpi-lbl">Belum Memilih</div></div>
-    <div class="kpi-card"><div class="kpi-num">${participation}%</div><div class="kpi-lbl">Tingkat Partisipasi</div></div>
-  `;
+  const kpiGrid = document.getElementById('kpi-grid');
+  if (kpiGrid) {
+    kpiGrid.innerHTML = `
+      <div class="kpi-card"><div class="kpi-num">${selectedVotes}</div><div class="kpi-lbl">Suara Masuk</div></div>
+      <div class="kpi-card"><div class="kpi-num">${selectedStudents - selectedVotes}</div><div class="kpi-lbl">Belum Memilih</div></div>
+      <div class="kpi-card"><div class="kpi-num">${participation}%</div><div class="kpi-lbl">Tingkat Partisipasi</div></div>
+    `;
+  }
 
   const votedRows = filteredVotes.map(v => ({
     name:       v.voter_name,
     role:       v.voter_role,
     identifier: v.voter_identifier,
-    time:       new Date(v.timestamp).toLocaleString('id-ID')
+    time:       formatVoteTime(v.timestamp)
   })).sort(compareStudents);
-  renderTable('voted-table', votedRows, 'Belum ada data pemilih yang cocok dengan filter.');
 
-  const unvoted = eligibleStudents
+  const unvotedRows = eligibleStudents
     .filter(student => !votedIdentifiers.has(`${student.kelas} | Absen ${student.absen}`))
     .map(student => ({
       name:       student.nama,
@@ -152,7 +230,9 @@ async function renderReport() {
       identifier: `${student.kelas} | Absen ${student.absen}`,
       time:       '-'
     })).sort(compareStudents);
-  renderTable('unvoted-table', unvoted, 'Semua siswa pada filter ini sudah memilih.');
+
+  lastReportData = { votedRows, unvotedRows };
+  renderReportData(lastReportData);
 }
 
 function switchTab(button, id) {
@@ -171,9 +251,17 @@ function subscribeRealtime() {
 }
 
 async function initLiveReport() {
+  const btnTable = document.getElementById('btn-view-table');
+  const btnCards = document.getElementById('btn-view-cards');
+  if (btnTable && btnCards) {
+    btnTable.classList.toggle('active', currentViewMode === 'table');
+    btnCards.classList.toggle('active', currentViewMode === 'cards');
+  }
+
   await loadStudents();
   await renderReport();
   subscribeRealtime();
 }
 
 document.addEventListener('DOMContentLoaded', initLiveReport);
+

@@ -47,23 +47,38 @@
 
     <div class="kpi-grid" id="kpi-grid" aria-live="polite"></div>
 
-    <div class="table-control-row" style="display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
-      <label for="filter-major" style="font-size:13px;font-weight:800;color:var(--dark);text-transform:uppercase;letter-spacing:.5px;">Jurusan/Rombel:</label>
-      <select id="filter-major" onchange="renderReport()" style="width:auto;padding:8px 36px 8px 16px;font-size:13px;border:2px solid var(--dark);border-radius:8px;box-shadow:2px 2px 0 var(--dark);cursor:pointer;">
-        <option value="">Semua Jurusan</option>
-        <option value="APHP 1">APHP 1</option>
-        <option value="APHP 2">APHP 2</option>
-        <option value="DKV 1">DKV 1</option>
-        <option value="DKV 2">DKV 2</option>
-        <option value="KULINER 1">KULINER 1</option>
-        <option value="KULINER 2">KULINER 2</option>
-        <option value="KULINER 3">KULINER 3</option>
-        <option value="LPS 1">LPS 1</option>
-        <option value="LPS 2">LPS 2</option>
-        <option value="RPL 1">RPL 1</option>
-        <option value="RPL 2">RPL 2</option>
-        <option value="RPL 3">RPL 3</option>
-      </select>
+    <div class="table-control-row">
+      <div class="view-mode-group">
+        <span class="control-label"><i class="ti ti-layout" aria-hidden="true"></i> Tampilan:</span>
+        <div class="view-toggle-wrap">
+          <button type="button" class="btn-toggle-view active" id="btn-view-table" onclick="setViewMode('table')" title="Tampilan Tabel">
+            <i class="ti ti-table" aria-hidden="true"></i> Tabel
+          </button>
+          <button type="button" class="btn-toggle-view" id="btn-view-cards" onclick="setViewMode('cards')" title="Tampilan Kartu">
+            <i class="ti ti-cards" aria-hidden="true"></i> Kartu
+          </button>
+        </div>
+      </div>
+      <div class="filter-group">
+        <label for="filter-major" class="control-label"><i class="ti ti-filter" aria-hidden="true"></i> Jurusan / Rombel:</label>
+        <div class="select-wrapper">
+          <select id="filter-major" onchange="renderReport()">
+            <option value="">Semua Jurusan</option>
+            <option value="APHP 1">APHP 1</option>
+            <option value="APHP 2">APHP 2</option>
+            <option value="DKV 1">DKV 1</option>
+            <option value="DKV 2">DKV 2</option>
+            <option value="KULINER 1">KULINER 1</option>
+            <option value="KULINER 2">KULINER 2</option>
+            <option value="KULINER 3">KULINER 3</option>
+            <option value="LPS 1">LPS 1</option>
+            <option value="LPS 2">LPS 2</option>
+            <option value="RPL 1">RPL 1</option>
+            <option value="RPL 2">RPL 2</option>
+            <option value="RPL 3">RPL 3</option>
+          </select>
+        </div>
+      </div>
     </div>
 
     <div class="tabs">
