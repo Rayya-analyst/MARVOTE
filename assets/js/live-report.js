@@ -13,17 +13,19 @@ function isClassXII(kelas) {
 
 function matchesMajor(kelas, major) {
   if (!major) return true;
-  const selectedMajor = major.replace(/^LPS/, 'PS').trim().toUpperCase();
-  const classMajor    = (kelas || '').split(' ').slice(1).join(' ').replace(/^LPS/, 'PS').trim().toUpperCase();
-  return classMajor === selectedMajor;
+  const sel = major.replace(/^LPS/i, 'PS').trim().toUpperCase();
+  const raw = (kelas || '').replace(/^XII\s+/i, '').replace(/^LPS/i, 'PS').trim().toUpperCase();
+  return raw === sel || raw.startsWith(sel + ' ');
 }
 
 function getSortParts(kelas) {
-  const parts = (kelas || '').split(' ');
-  const rawMajor = (parts[1] || '').replace(/^LPS/, 'PS').toUpperCase();
+  const clean = (kelas || '').replace(/^XII\s+/i, '').replace(/^LPS/i, 'PS').trim().toUpperCase();
+  const parts = clean.split(/\s+/);
+  const major = parts[0] || '';
+  const rombel = Number.parseInt(parts[1], 10) || 0;
   return {
-    majorRank: { APHP: 1, DKV: 2, KULINER: 3, PS: 4, RPL: 5 }[rawMajor] || 99,
-    rombel:    Number.parseInt(parts[2], 10) || 0
+    majorRank: { APHP: 1, DKV: 2, KULINER: 3, KUL: 3, PS: 4, RPL: 5 }[major] || 99,
+    rombel:    rombel
   };
 }
 
@@ -54,7 +56,7 @@ async function loadStudents() {
     const { data, error } = await supabaseClient
       .from('students')
       .select('kelas, absen, nama')
-      .like('kelas', 'XII %');
+      .ilike('kelas', 'XII %');
     if (error) throw error;
 
     students = {};
