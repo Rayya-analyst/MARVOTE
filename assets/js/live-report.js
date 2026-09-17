@@ -13,16 +13,16 @@ function isClassXII(kelas) {
 
 function matchesMajor(kelas, major) {
   if (!major) return true;
-  const selectedMajor = major.replace(/^LPS/, 'PS');
-  const classMajor    = kelas.split(' ').slice(1).join(' ').replace(/^LPS/, 'PS');
+  const selectedMajor = major.replace(/^LPS/, 'PS').trim().toUpperCase();
+  const classMajor    = (kelas || '').split(' ').slice(1).join(' ').replace(/^LPS/, 'PS').trim().toUpperCase();
   return classMajor === selectedMajor;
 }
 
 function getSortParts(kelas) {
-  const parts = kelas.split(' ');
-  const major = parts[1] === 'LPS' ? 'PS' : parts[1];
+  const parts = (kelas || '').split(' ');
+  const rawMajor = (parts[1] || '').replace(/^LPS/, 'PS').toUpperCase();
   return {
-    majorRank: { APHP: 1, DKV: 2, KULINER: 3, PS: 4, RPL: 5 }[major] || 99,
+    majorRank: { APHP: 1, DKV: 2, KULINER: 3, PS: 4, RPL: 5 }[rawMajor] || 99,
     rombel:    Number.parseInt(parts[2], 10) || 0
   };
 }
@@ -197,8 +197,8 @@ async function renderReport() {
 
   const eligibleStudents       = allStudents.filter(student => matchesMajor(student.kelas, major));
   const filteredVotes          = votes.filter(v => matchesMajor(getClass(v.voter_identifier), major));
-  const votedIdentifiers       = new Set(votes.map(v => v.voter_identifier));
-  const filteredVotedIdentifiers = new Set(filteredVotes.map(v => v.voter_identifier));
+  const votedIdentifiers       = new Set(votes.map(v => (v.voter_identifier || '').toUpperCase()));
+  const filteredVotedIdentifiers = new Set(filteredVotes.map(v => (v.voter_identifier || '').toUpperCase()));
 
   const totalStudents  = allStudents.length;
   const totalVotes     = votes.length;
@@ -223,7 +223,7 @@ async function renderReport() {
   })).sort(compareStudents);
 
   const unvotedRows = eligibleStudents
-    .filter(student => !votedIdentifiers.has(`${student.kelas} | Absen ${student.absen}`))
+    .filter(student => !votedIdentifiers.has(`${student.kelas} | Absen ${student.absen}`.toUpperCase()))
     .map(student => ({
       name:       student.nama,
       role:       'siswa',

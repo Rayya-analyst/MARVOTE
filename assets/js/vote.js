@@ -27,12 +27,13 @@ async function initApp() {
       SISWA = {};
       if (siswaData) {
         siswaData.forEach(item => {
-          if (!SISWA[item.kelas]) {
-            SISWA[item.kelas] = [];
+          const kKey = (item.kelas || '').trim().toUpperCase();
+          if (!SISWA[kKey]) {
+            SISWA[kKey] = [];
           }
-          const isDuplicate = SISWA[item.kelas].some(s => s.absen === item.absen);
+          const isDuplicate = SISWA[kKey].some(s => s.absen === item.absen);
           if (!isDuplicate) {
-            SISWA[item.kelas].push({ absen: item.absen, nama: item.nama });
+            SISWA[kKey].push({ absen: item.absen, nama: item.nama, rawKelas: item.kelas });
           }
         });
       }
@@ -286,12 +287,12 @@ async function onStudentCodeChange() {
   successMessage.style.display = 'none';
   reveal.classList.add('show');
 
-  const tokenPattern = /^(X|XI|XII)(APHP|DKV|KULINER|PS|PS|RPL)([1-3])(\d{2})$/;
+  const tokenPattern = /^(X|XI|XII)(APHP|DKV|KULINER|KUL|PS|RPL)([1-3])(\d{2})$/;
   const match        = token.match(tokenPattern);
 
   if (!match) {
     nameDisplay.textContent  = "Format Token Salah";
-    kelasDisplay.textContent = "Gunakan format: TINGKAT + JURUSAN + ROMBEL + 2 DIGIT ABSEN. Contoh: XRPL301";
+    kelasDisplay.textContent = "Gunakan format: TINGKAT + JURUSAN + ROMBEL + 2 DIGIT ABSEN. Contoh: XRPL301 atau XIIKUL103";
     currentVoter = null;
     document.querySelector('.cand-section')?.classList.remove('show');
     document.querySelector('.submit-wrap')?.classList.remove('show');
@@ -299,51 +300,59 @@ async function onStudentCodeChange() {
   }
 
   const tingkat = match[1];
-  const jurusan = match[2];
+  let jurusan   = match[2];
+  if (jurusan === 'KUL') {
+    jurusan = 'KULINER';
+  }
   const rombel  = match[3];
   const absen   = parseInt(match[4], 10);
 
   const namaKelasTarget = `${tingkat} ${jurusan} ${rombel}`;
 
   let namaSiswa = null;
+  let verifiedKelas = namaKelasTarget;
 
   if (typeof supabaseClient !== 'undefined' && supabaseClient) {
     try {
       const { data, error } = await supabaseClient
         .from('students')
-        .select('nama')
-        .eq('kelas', namaKelasTarget)
+        .select('nama, kelas')
+        .ilike('kelas', namaKelasTarget)
         .eq('absen', absen)
         .maybeSingle();
       if (error) throw error;
-      if (data) namaSiswa = data.nama;
+      if (data) {
+        namaSiswa = data.nama;
+        if (data.kelas) verifiedKelas = data.kelas;
+      }
     } catch (e) {
       console.error("Gagal mengambil data token siswa dari Supabase:", e);
     }
   }
 
   if (!namaSiswa) {
-    const s = (SISWA[namaKelasTarget] || []).find(x => x.absen === absen);
+    const s = (SISWA[namaKelasTarget.toUpperCase()] || []).find(x => x.absen === absen);
     namaSiswa = s ? s.nama : null;
+    if (s && s.rawKelas) verifiedKelas = s.rawKelas;
   }
 
   if (namaSiswa) {
     currentVoter = {
       name:       namaSiswa,
       role:       'siswa',
-      identifier: `${namaKelasTarget} | Absen ${absen}`,
-      metadata:   { kelas: namaKelasTarget, absen: absen }
+      identifier: `${verifiedKelas} | Absen ${absen}`,
+      metadata:   { kelas: verifiedKelas, absen: absen }
     };
 
     nameDisplay.textContent  = namaSiswa;
-    kelasDisplay.textContent = `Siswa • Kelas ${namaKelasTarget} • No. Absen ${absen}`;
+    kelasDisplay.textContent = `Siswa • Kelas ${verifiedKelas} • No. Absen ${absen}`;
     successMessage.style.display = 'block';
 
     document.querySelector('.cand-section')?.classList.add('show');
     document.querySelector('.submit-wrap')?.classList.add('show');
   } else {
     nameDisplay.textContent  = "Data Siswa Tidak Ditemukan";
-    kelasDisplay.textContent = `Tidak ada siswa di kelas ${namaKelasTarget} dengan nomor absen ${absen}.`;
+    kelasDisplay.textContent = `Tidak ada siswa di kelas ${verifiedKelas} dengan nomor absen ${absen}.`;
     successMessage.style.display = 'none';
     currentVoter = null;
 
